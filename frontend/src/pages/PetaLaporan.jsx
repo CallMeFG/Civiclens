@@ -62,9 +62,10 @@ export default function PetaLaporan() {
   };
 
   const getImageUrl = (fotoPath) => {
-    if (fotoPath) return `http://127.0.0.1:8000/storage/${fotoPath}`;
-    return 'https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&q=80&w=300';
-  };
+  const baseURL = "https://api.civiclens.cloud";
+  if (fotoPath) return `${baseURL}/storage/${fotoPath}`;
+  return 'https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&q=80&w=300';
+};
 
   const getStatusStyle = (status) => {
     switch (status?.toLowerCase()) {
@@ -90,17 +91,19 @@ export default function PetaLaporan() {
       {viewMode === 'map' ? (
         <>
           <div>
-            <h1 className="text-2xl font-bold text-gray-800">Peta Sebaran Laporan</h1>
-            <p className="text-gray-500 mt-1">Pantau lokasi permasalahan fasilitas publik di seluruh wilayah kota.</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-800">Peta Sebaran Laporan</h1>
+            <p className="text-sm sm:text-base text-gray-500 mt-1">Pantau lokasi permasalahan fasilitas publik di seluruh wilayah kota.</p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
-            <div className="lg:col-span-2 w-full rounded-2xl overflow-hidden border border-gray-100 shadow-sm h-[650px]">
+            {/* CONTAINER PETA: Tinggi disesuaikan (h-[400px] di HP, lg:h-[650px] di Desktop), relative dan z-0 */}
+            <div className="lg:col-span-2 w-full rounded-2xl overflow-hidden border border-gray-100 shadow-sm h-[400px] lg:h-[650px] relative z-0">
               {isLoading ? (
                  <div className="flex items-center justify-center h-full text-gray-500">Memuat peta...</div>
               ) : (
-                <MapContainer center={[0.5071, 101.4478]} zoom={13} style={{ height: "100%", width: "100%" }}>
+                // zIndex: 0 di style MapContainer sangat penting untuk mencegah zoom control menembus header
+                <MapContainer center={[0.5071, 101.4478]} zoom={13} style={{ height: "100%", width: "100%", zIndex: 0 }}>
                   <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                   {reports.map((report) => (
                     <Marker key={report.id} position={[report.latitude, report.longitude]}>
@@ -112,7 +115,6 @@ export default function PetaLaporan() {
                           <div className="flex justify-between items-center pt-1 border-t">
                             <span className="text-[10px] font-bold uppercase text-orange-600">{report.status}</span>
                             
-                            {/* TOMBOL VOTE DI POPUP PETA */}
                             <button 
                               onClick={(e) => { e.stopPropagation(); handleVote(report.id); }}
                               className={`flex items-center gap-1 font-bold text-xs transition-colors ${
@@ -133,54 +135,54 @@ export default function PetaLaporan() {
             </div>
 
             {/* KOLOM KANAN: SIDEBAR LAPORAN TERBARU */}
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col h-[650px]">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-                  <Clock className="w-5 h-5 text-[#2563EB]" /> Laporan Terbaru
+            {/* Tinggi disesuaikan dengan peta (h-[400px] di HP, lg:h-[650px] di Desktop) */}
+            <div className="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col h-[400px] lg:h-[650px]">
+              <div className="flex justify-between items-center mb-4 sm:mb-6">
+                <h3 className="text-base sm:text-lg font-bold text-gray-800 flex items-center gap-2">
+                  <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-[#2563EB]" /> Laporan Terbaru
                 </h3>
                 <button 
                   onClick={() => setViewMode('list')}
-                  className="text-xs font-bold text-[#2563EB] hover:underline bg-blue-50 px-3 py-1.5 rounded-lg transition-colors"
+                  className="text-xs font-bold text-[#2563EB] hover:underline bg-blue-50 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
                 >
                   Lihat Semua
                 </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar">
+              <div className="flex-1 overflow-y-auto space-y-3 sm:space-y-4 pr-1 sm:pr-2 custom-scrollbar">
                 {isLoading ? (
                    <div className="text-center text-sm text-gray-500 py-4">Memuat data...</div>
                 ) : reports.length === 0 ? (
                    <div className="text-center text-sm text-gray-500 py-4">Belum ada laporan.</div>
                 ) : (
                   reports.map((report) => (
-                    <div key={report.id} className="flex gap-4 p-3 border border-gray-100 rounded-xl hover:bg-gray-50 transition-colors group">
+                    <div key={report.id} className="flex gap-3 sm:gap-4 p-2 sm:p-3 border border-gray-100 rounded-xl hover:bg-gray-50 transition-colors group">
                       <img 
                         src={getImageUrl(report.foto)} 
                         alt={report.judul} 
-                        className="w-20 h-20 object-cover rounded-lg shrink-0 border border-gray-100"
+                        className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg shrink-0 border border-gray-100"
                       />
                       <div className="flex-1 min-w-0 flex flex-col justify-center">
                         <div className="flex justify-between items-start mb-1">
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider ${getStatusStyle(report.status)}`}>
+                          <span className={`px-2 py-0.5 rounded-full text-[8px] sm:text-[10px] uppercase font-bold tracking-wider ${getStatusStyle(report.status)}`}>
                             {report.status || 'Pending'}
                           </span>
                           
-                          {/* TOMBOL VOTE DI SIDEBAR */}
                           <button 
                             onClick={(e) => { e.stopPropagation(); handleVote(report.id); }}
-                            className={`flex items-center gap-1 transition-colors ${
+                            className={`flex items-center gap-1 transition-colors cursor-pointer ${
                               report.is_voted ? 'text-red-500' : 'text-gray-400 hover:text-red-500'
                             }`}
                           >
-                            <Heart className={`w-4 h-4 ${report.is_voted ? 'fill-current' : ''}`} />
-                            <span className="text-xs font-bold">{report.votes_count || 0}</span>
+                            <Heart className={`w-3 h-3 sm:w-4 sm:h-4 ${report.is_voted ? 'fill-current' : ''}`} />
+                            <span className="text-[10px] sm:text-xs font-bold">{report.votes_count || 0}</span>
                           </button>
                           
                         </div>
-                        <h3 className="font-bold text-gray-800 text-sm truncate mb-1" title={report.judul}>
+                        <h3 className="font-bold text-gray-800 text-xs sm:text-sm truncate mb-0.5 sm:mb-1" title={report.judul}>
                           {report.judul}
                         </h3>
-                        <p className="text-xs text-gray-500 line-clamp-2">
+                        <p className="text-[10px] sm:text-xs text-gray-500 line-clamp-2">
                           {report.deskripsi}
                         </p>
                       </div>
@@ -202,68 +204,68 @@ export default function PetaLaporan() {
             <div className="flex items-center gap-3">
               <button 
                 onClick={() => setViewMode('map')}
-                className="p-2.5 bg-white border border-gray-200 hover:bg-gray-50 rounded-xl text-gray-600 shadow-sm transition-colors"
+                className="p-2 sm:p-2.5 bg-white border border-gray-200 hover:bg-gray-50 rounded-xl text-gray-600 shadow-sm transition-colors cursor-pointer"
               >
-                <ArrowLeft className="w-5 h-5" />
+                <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
               <div>
-                <h1 className="text-2xl font-bold text-gray-800">Daftar Semua Laporan</h1>
-                <p className="text-gray-500 text-sm mt-0.5">Dukung laporan dari masyarakat dengan memberikan vote.</p>
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-800">Daftar Semua Laporan</h1>
+                <p className="text-gray-500 text-xs sm:text-sm mt-0.5">Dukung laporan dari masyarakat dengan memberikan vote.</p>
               </div>
             </div>
 
             <div className="relative w-full sm:w-80">
-              <Search className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" />
+              <Search className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" />
               <input 
                 type="text" 
                 placeholder="Cari laporan..." 
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2563EB] bg-white" 
+                className="w-full pl-10 sm:pl-12 pr-4 py-2 sm:py-2.5 text-xs sm:text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2563EB] bg-white" 
               />
             </div>
           </div>
 
           <div className="space-y-4">
             {isLoading ? (
-              <div className="text-center py-10 text-gray-500">Memuat laporan...</div>
+              <div className="text-center py-10 text-gray-500 text-sm">Memuat laporan...</div>
             ) : filteredReports.length === 0 ? (
-              <div className="text-center py-10 text-gray-500 bg-white rounded-xl border">Tidak ada laporan yang ditemukan.</div>
+              <div className="text-center py-10 text-gray-500 text-sm bg-white rounded-xl border">Tidak ada laporan yang ditemukan.</div>
             ) : (
               filteredReports.map((report) => (
-                <div key={report.id} className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col md:flex-row gap-6 hover:shadow-md transition-shadow">
-                  <img src={getImageUrl(report.foto)} alt={report.judul} className="w-full md:w-48 h-32 object-cover rounded-xl" />
+                <div key={report.id} className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col md:flex-row gap-4 sm:gap-6 hover:shadow-md transition-shadow">
+                  <img src={getImageUrl(report.foto)} alt={report.judul} className="w-full md:w-48 h-40 md:h-32 object-cover rounded-xl" />
                   
                   <div className="flex-1 flex flex-col justify-between">
                     <div>
-                      <h4 className="text-lg font-bold text-[#2563EB]">{report.judul}</h4>
-                      <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
-                        <MapPin className="w-3.5 h-3.5" /> Koordinat: {report.latitude}, {report.longitude}
+                      <h4 className="text-base sm:text-lg font-bold text-[#2563EB] leading-tight">{report.judul}</h4>
+                      <p className="text-[10px] sm:text-xs text-gray-500 mt-1 flex items-center gap-1">
+                        <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> Koordinat: {parseFloat(report.latitude).toFixed(4)}, {parseFloat(report.longitude).toFixed(4)}
                       </p>
-                      <p className="text-sm text-gray-600 mt-2 line-clamp-2">{report.deskripsi}</p>
+                      <p className="text-xs sm:text-sm text-gray-600 mt-2 line-clamp-2">{report.deskripsi}</p>
                     </div>
-                    <p className="text-xs text-gray-400 mt-4">
+                    <p className="text-[10px] sm:text-xs text-gray-400 mt-3 md:mt-4">
                       Dilaporkan: {new Date(report.created_at).toLocaleDateString('id-ID')}
                     </p>
                   </div>
 
-                  <div className="flex flex-col items-end justify-between min-w-[120px]">
-                    <span className={`px-4 py-1.5 rounded-full text-xs font-bold capitalize ${getStatusStyle(report.status)}`}>
+                  <div className="flex flex-row md:flex-col items-center md:items-end justify-between md:justify-between min-w-[120px] mt-4 md:mt-0 pt-4 md:pt-0 border-t border-gray-100 md:border-0">
+                    <span className={`px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-bold capitalize ${getStatusStyle(report.status)}`}>
                       {report.status}
                     </span>
-                    <div className="flex items-center gap-4 mt-4 md:mt-0">
+                    <div className="flex items-center gap-3 sm:gap-4">
                       
                       <button 
                         onClick={(e) => { e.stopPropagation(); handleVote(report.id); }}
-                        className={`flex items-center gap-1.5 font-bold transition-colors ${
+                        className={`flex items-center gap-1.5 font-bold transition-colors cursor-pointer ${
                           report.is_voted ? 'text-red-500' : 'text-gray-400 hover:text-red-500'
                         }`}
                       >
-                        <Heart className={`w-5 h-5 ${report.is_voted ? 'fill-current' : ''}`} />
-                        <span className="text-sm">{report.votes_count || 0}</span>
+                        <Heart className={`w-4 h-4 sm:w-5 sm:h-5 ${report.is_voted ? 'fill-current' : ''}`} />
+                        <span className="text-xs sm:text-sm">{report.votes_count || 0}</span>
                       </button>
                       
-                      <ChevronRight className="w-5 h-5 text-gray-400" />
+                      <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
                     </div>
                   </div>
                 </div>

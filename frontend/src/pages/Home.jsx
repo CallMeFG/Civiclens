@@ -1,5 +1,7 @@
+import { useState } from 'react'; // Tambahkan import useState
 import { Link, useNavigate } from 'react-router-dom';
 import axiosInstance from '../api/axios';
+
 const scrollToSection = (e, sectionId) => {
   e.preventDefault();
   const element = document.getElementById(sectionId);
@@ -11,6 +13,7 @@ const scrollToSection = (e, sectionId) => {
 // --- 1. KOMPONEN NAVBAR ---
 const Navbar = () => {
   const isLoggedIn = !!localStorage.getItem('token');
+  const [isMenuOpen, setIsMenuOpen] = useState(false); // State untuk mobile menu
 
   const handleLogout = async () => {
     try {
@@ -23,19 +26,25 @@ const Navbar = () => {
     }
   };
 
+  const handleMobileScroll = (e, sectionId) => {
+    scrollToSection(e, sectionId);
+    setIsMenuOpen(false); // Tutup menu setelah klik
+  };
+
   return (
     <nav className="absolute top-0 left-0 w-full z-50 text-white">
-      <div className="max-w-7xl mx-auto px-6 py-6 flex justify-between items-center">
+      <div className="max-w-7xl mx-auto px-6 py-6 flex justify-between items-center relative">
         
         {/* LOGO & TEKS CIVICLENS */}
         <div 
-          className="flex items-center gap-2 font-bold text-xl cursor-pointer"
+          className="flex items-center gap-2 font-bold text-xl cursor-pointer relative z-50"
           onClick={(e) => scrollToSection(e, 'beranda')}
         >
           <img src="/img/Logo.png" alt="CivicLens Logo" className="w-auto h-10" />
           <span className="tracking-wide">CivicLens</span>
         </div>
         
+        {/* MENU DESKTOP */}
         <ul className="hidden md:flex gap-8 text-sm font-medium">
           <li><a href="#beranda" onClick={(e) => scrollToSection(e, 'beranda')} className="hover:text-gray-200 transition">Beranda</a></li>
           <li><a href="#keunggulan" onClick={(e) => scrollToSection(e, 'keunggulan')} className="hover:text-gray-200 transition">Keunggulan</a></li>
@@ -44,7 +53,7 @@ const Navbar = () => {
         </ul>
         
         <div className="hidden md:flex items-center gap-4 text-sm font-medium">
-          {/* LOGIKA AUTENTIKASI */}
+          {/* LOGIKA AUTENTIKASI DESKTOP */}
           {isLoggedIn ? (
             <>
               <Link to="/dashboard" className="bg-white text-primary px-6 py-2.5 rounded-none font-bold hover:bg-gray-100 transition-colors">
@@ -69,11 +78,57 @@ const Navbar = () => {
           )}
         </div>
         
-        <button className="md:hidden block text-white">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M3 12h18M3 6h18M3 18h18" />
-          </svg>
+        {/* TOMBOL HAMBURGER MOBILE */}
+        <button 
+          onClick={() => setIsMenuOpen(!isMenuOpen)} 
+          className="md:hidden block text-white relative z-50 p-2"
+        >
+          {isMenuOpen ? (
+             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-7 h-7">
+               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+             </svg>
+          ) : (
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-7 h-7">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 12h18M3 6h18M3 18h18" />
+            </svg>
+          )}
         </button>
+
+        {/* DROPDOWN MENU MOBILE */}
+        <div className={`absolute top-full left-0 w-full bg-[#317ED9] shadow-xl transition-all duration-300 md:hidden overflow-hidden ${isMenuOpen ? 'max-h-[400px] opacity-100' : 'max-h-0 opacity-0'}`}>
+          <div className="flex flex-col px-6 py-6 gap-4 text-center">
+            <a href="#beranda" onClick={(e) => handleMobileScroll(e, 'beranda')} className="text-base font-medium hover:text-gray-300">Beranda</a>
+            <a href="#keunggulan" onClick={(e) => handleMobileScroll(e, 'keunggulan')} className="text-base font-medium hover:text-gray-300">Keunggulan</a>
+            <a href="#fitur" onClick={(e) => handleMobileScroll(e, 'fitur')} className="text-base font-medium hover:text-gray-300">Fitur</a>
+            <a href="#statistik" onClick={(e) => handleMobileScroll(e, 'statistik')} className="text-base font-medium hover:text-gray-300">Statistik</a>
+            
+            <div className="w-full h-px bg-white/20 my-2"></div>
+            
+            {/* LOGIKA AUTENTIKASI MOBILE */}
+            {isLoggedIn ? (
+              <div className="flex flex-col gap-3">
+                <Link to="/dashboard" className="w-full bg-white text-primary py-2.5 font-bold hover:bg-gray-100 transition-colors text-center">
+                  Dashboard
+                </Link>
+                <button 
+                  onClick={handleLogout}
+                  className="w-full py-2.5 border-2 border-white/30 hover:bg-red-500 hover:text-white hover:border-red-500 transition-colors font-bold"
+                >
+                  Keluar
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-3">
+                <Link to="/login" className="w-full py-2.5 border-2 border-white/30 hover:bg-white hover:text-primary transition-colors font-bold text-center">
+                  Masuk
+                </Link>
+                <Link to="/register" className="w-full bg-white text-primary py-2.5 hover:bg-gray-100 transition-colors font-bold text-center">
+                  Daftar
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </nav>
   );
@@ -84,46 +139,45 @@ const Hero = () => {
   const navigate = useNavigate();
   const isLoggedIn = !!localStorage.getItem('token');
 
-  // LOGIKA TOMBOL HERO
   const handleLaporkan = () => {
     if (isLoggedIn) navigate('/buat-laporan');
     else navigate('/login');
   };
 
   const handlePeta = () => {
-    if (isLoggedIn) navigate('/dashboard'); // Dashboard kita adalah peta
+    if (isLoggedIn) navigate('/dashboard'); 
     else navigate('/login');
   };
 
   return (
-    <section className="relative w-full min-h-[90vh] flex items-center pt-32 pb-40 overflow-hidden bg-linear-to-t from-white to-transparent" id="beranda">
+    <section className="relative w-full min-h-[90vh] flex items-center pt-32 pb-20 md:pb-40 overflow-hidden bg-linear-to-t from-white to-transparent" id="beranda">
       <div className="absolute inset-0 z-10">
         <img src="/img/Background Hero.png" alt="Latar Belakang Kota" className="w-full h-full object-cover object-center" />
       </div>
-      <div className="relative z-10 max-w-7xl mx-auto px-6 w-full grid grid-cols-1 md:grid-cols-2 gap-16 lg:gap-24 items-center">
-        <div className="text-white space-y-6">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 backdrop-blur-md text-sm font-medium">
+      <div className="relative z-10 max-w-7xl mx-auto px-6 w-full grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 lg:gap-24 items-center mt-10 md:mt-0">
+        <div className="text-white space-y-5 md:space-y-6 text-center md:text-left flex flex-col items-center md:items-start">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 backdrop-blur-md text-xs md:text-sm font-medium">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
             </svg>
             Platform Pelaporan Masyarakat
           </div>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
             Bersama Membangun <br className="hidden lg:block"/> Kota yang Lebih Baik
           </h1>
-          <p className="text-lg text-blue-100 max-w-lg leading-relaxed">
+          <p className="text-base md:text-lg text-blue-100 max-w-lg leading-relaxed">
             Laporkan masalah di sekitar Anda, pantau perkembangannya, dan lihat perubahan nyata dari data transparan.
           </p>
-          <div className="flex flex-wrap items-center gap-4 pt-2">
+          <div className="flex flex-col sm:flex-row items-center gap-4 pt-2 w-full sm:w-auto">
             <button 
               onClick={handleLaporkan} 
-              className="px-6 py-3 cursor-pointer bg-white text-blue-600 font-semibold rounded-lg shadow-lg hover:bg-blue-600 hover:text-white transition duration-300"
+              className="w-full sm:w-auto px-6 py-3 cursor-pointer bg-white text-blue-600 font-semibold rounded-lg shadow-lg hover:bg-blue-600 hover:text-white transition duration-300 text-sm md:text-base"
             >
               Laporkan Sekarang
             </button>
             <button 
               onClick={handlePeta} 
-              className="px-6 py-3 cursor-pointer bg-transparent border border-white text-white font-semibold rounded-lg hover:bg-white/10 transition duration-300 flex items-center gap-2"
+              className="w-full sm:w-auto justify-center px-6 py-3 cursor-pointer bg-transparent border border-white text-white font-semibold rounded-lg hover:bg-white/10 transition duration-300 flex items-center gap-2 text-sm md:text-base"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.243-4.243a8 8 0 1111.314 0z" />
@@ -133,8 +187,8 @@ const Hero = () => {
             </button>
           </div>
         </div>
-        <div className="flex justify-center md:justify-end relative">
-          <img src="/img/Mockup.png" alt="Aplikasi CivicLens" className="w-full max-w-62.5 md:max-w-[320px] lg:max-w-62.5 object-contain drop-shadow-2xl relative z-10 translate-y-10 -translate-x-10 lg:-translate-x-20" />
+        <div className="flex justify-center md:justify-end relative mt-8 md:mt-0">
+          <img src="/img/Mockup.png" alt="Aplikasi CivicLens" className="w-full max-w-[250px] sm:max-w-[300px] md:max-w-[320px] lg:max-w-62.5 object-contain drop-shadow-2xl relative z-10 md:translate-y-10 md:-translate-x-10 lg:-translate-x-20" />
         </div>
       </div>
     </section>
@@ -151,23 +205,23 @@ const Keunggulan = () => {
   ];
 
   return (
-    <section id="keunggulan" className="py-24 bg-gray-50">
+    <section id="keunggulan" className="py-16 md:py-24 bg-gray-50">
       <div className="max-w-7xl mx-auto px-6">
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-[#1E3A8A] mb-5 tracking-tight">
+        <div className="text-center max-w-3xl mx-auto mb-12 md:mb-16">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#1E3A8A] mb-4 md:mb-5 tracking-tight">
             Kenapa Orang-Orang Suka CivicLens?
           </h2>
-          <p className="text-gray-500 text-lg leading-relaxed">
+          <p className="text-gray-500 text-base md:text-lg leading-relaxed">
             CivicLens menarik perhatian banyak orang karena kemampuannya dalam menyajikan informasi yang akurat dan relevan.
           </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
           {dataKeunggulan.map((item) => (
-            <div key={item.id} className="group bg-white border border-gray-200 rounded-2xl py-10 px-6 text-center hover:bg-linear-to-b hover:from-primary hover:to-[#10B981] transition-colors duration-300 flex flex-col items-center gap-6">
-              <div className="w-16 h-16 flex items-center justify-center">
-                <img src={item.icon} alt={`Ikon ${item.title}`} className="w-16 h-16 object-contain" />
+            <div key={item.id} className="group bg-white border border-gray-200 rounded-2xl py-8 md:py-10 px-6 text-center hover:bg-linear-to-b hover:from-primary hover:to-[#10B981] transition-colors duration-300 flex flex-col items-center gap-4 md:gap-6">
+              <div className="w-14 h-14 md:w-16 md:h-16 flex items-center justify-center">
+                <img src={item.icon} alt={`Ikon ${item.title}`} className="w-14 h-14 md:w-16 md:h-16 object-contain" />
               </div>
-              <h3 className="text-lg font-bold text-[#1E3A8A] group-hover:text-white transition-colors duration-300">
+              <h3 className="text-base md:text-lg font-bold text-[#1E3A8A] group-hover:text-white transition-colors duration-300">
                 {item.title}
               </h3>
             </div>
@@ -181,37 +235,39 @@ const Keunggulan = () => {
 // --- 4. KOMPONEN FITUR ---
 const Fitur = () => {
   const dataFitur = [
-    { id: 1, title: "Laporkan Masalah", desc: "Laporkan masalah di sekitar Anda dengan mudah.", iconColor: "text-blue-600", icon: <img src="/img/Icon Fitur (1).png" alt="Fitur 1" className="w-10 h-10 object-contain" /> },
-    { id: 2, title: "Peta Interaktif", desc: "Lihat laporan di peta secara real-time dan detail.", iconColor: "text-emerald-500", icon: <img src="/img/Icon Fitur (2).png" alt="Fitur 2" className="w-10 h-10 object-contain" /> },
-    { id: 3, title: "Data & Insight", desc: "Dapatkan insight dari data laporan untuk keputusan lebih baik", iconColor: "text-amber-500", icon: <img src="/img/Icon Fitur (3).png" alt="Fitur 3" className="w-10 h-10 object-contain" /> },
-    { id: 4, title: "Pantau Perkembangan", desc: "Pantau status laporan dari awal hingga selesai", iconColor: "text-purple-500", icon: <img src="/img/Icon Fitur (4).png" alt="Fitur 4" className="w-10 h-10 object-contain" /> }
+    { id: 1, title: "Laporkan Masalah", desc: "Laporkan masalah di sekitar Anda dengan mudah.", iconColor: "text-blue-600", icon: <img src="/img/Icon Fitur (1).png" alt="Fitur 1" className="w-8 h-8 md:w-10 md:h-10 object-contain" /> },
+    { id: 2, title: "Peta Interaktif", desc: "Lihat laporan di peta secara real-time dan detail.", iconColor: "text-emerald-500", icon: <img src="/img/Icon Fitur (2).png" alt="Fitur 2" className="w-8 h-8 md:w-10 md:h-10 object-contain" /> },
+    { id: 3, title: "Data & Insight", desc: "Dapatkan insight dari data laporan untuk keputusan lebih baik", iconColor: "text-amber-500", icon: <img src="/img/Icon Fitur (3).png" alt="Fitur 3" className="w-8 h-8 md:w-10 md:h-10 object-contain" /> },
+    { id: 4, title: "Pantau Perkembangan", desc: "Pantau status laporan dari awal hingga selesai", iconColor: "text-purple-500", icon: <img src="/img/Icon Fitur (4).png" alt="Fitur 4" className="w-8 h-8 md:w-10 md:h-10 object-contain" /> }
   ];
 
   return (
-    <section id="fitur" className="relative py-24 bg-[#ffffff] overflow-hidden">
-      <div className="absolute inset-0 z-0">
+    <section id="fitur" className="relative py-16 md:py-24 bg-[#ffffff] overflow-hidden">
+      <div className="absolute inset-0 z-0 opacity-50 md:opacity-100">
         <img src="/img/Vector 3.png" alt="Latar Belakang Kota" className="w-full h-full object-cover object-center" />
       </div>
-      <div className="relative z-10 max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
-        <div className="max-w-xl">
-          <h2 className="text-3xl md:text-4xl lg:text-[40px] font-bold text-[#1E3A8A] leading-snug mb-12">
+      <div className="relative z-10 max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24 items-center">
+        <div className="max-w-xl mx-auto lg:mx-0 text-center lg:text-left">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-[40px] font-bold text-[#1E3A8A] leading-snug mb-8 md:mb-12">
             Pakai Perangkat Android atau IOS Anda untuk Mengakses Semua Fitur
           </h2>
-          <div className="flex flex-col gap-8">
+          <div className="flex flex-col gap-6 md:gap-8 text-left">
             {dataFitur.map((fitur) => (
-              <div key={fitur.id} className="flex items-start gap-6 group">
-                <div className="w-18 h-18 shrink-0 bg-white rounded-[20px] shadow-[0_8px_30px_rgba(0,0,0,0.04)] flex items-center justify-center transition-transform duration-300 group-hover:-translate-y-1">
+              <div key={fitur.id} className="flex flex-col sm:flex-row items-center sm:items-start gap-4 md:gap-6 group text-center sm:text-left">
+                <div className="w-14 h-14 md:w-18 md:h-18 shrink-0 bg-white rounded-xl md:rounded-[20px] shadow-[0_8px_30px_rgba(0,0,0,0.04)] flex items-center justify-center transition-transform duration-300 group-hover:-translate-y-1">
                   <div className={fitur.iconColor}>{fitur.icon}</div>
                 </div>
-                <div className="pt-2">
-                  <h3 className="text-[22px] font-bold text-[#1E3A8A] mb-2 tracking-tight">{fitur.title}</h3>
-                  <p className="text-gray-500/90 leading-relaxed text-[17px]">{fitur.desc}</p>
+                <div className="pt-1 md:pt-2">
+                  <h3 className="text-lg md:text-[22px] font-bold text-[#1E3A8A] mb-1 md:mb-2 tracking-tight">{fitur.title}</h3>
+                  <p className="text-gray-500/90 leading-relaxed text-sm md:text-[17px]">{fitur.desc}</p>
                 </div>
               </div>
             ))}
           </div>
         </div>
-        <img src="/img/Realme 10.png" alt="Mockup Aplikasi Android dan iOS" className="w-full h-auto max-w-150 lg:max-w-175 object-contain drop-shadow-2xl" />
+        <div className="flex justify-center mt-8 lg:mt-0">
+          <img src="/img/Realme 10.png" alt="Mockup Aplikasi Android dan iOS" className="w-full h-auto max-w-[250px] sm:max-w-[300px] lg:max-w-175 object-contain drop-shadow-2xl" />
+        </div>
       </div>
     </section>
   );
@@ -220,31 +276,31 @@ const Fitur = () => {
 // --- 5. KOMPONEN STATISTIK ---
 const Statistik = () => {
   const dataStatistik = [
-    { id: 1, angka: "1.235", label: "Total Laporan", baseColor: "bg-primary", hoverBorder: "hover:border-primary", hoverText: "group-hover:text-primary", icon: <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8"><path fillRule="evenodd" d="M5.625 1.5H9a3.75 3.75 0 0 1 3.75 3.75v1.875c0 1.036.84 1.875 1.875 1.875H16.5a3.75 3.75 0 0 1 3.75 3.75v7.875c0 1.035-.84 1.875-1.875 1.875H5.625a1.875 1.875 0 0 1-1.875-1.875V3.375c0-1.036.84-1.875 1.875-1.875Zm5.845 17.03a.75.75 0 0 0 1.06 0l3-3a.75.75 0 1 0-1.06-1.06l-1.72 1.72V12a.75.75 0 0 0-1.5 0v4.19l-1.72-1.72a.75.75 0 0 0-1.06 1.06l3 3Z" clipRule="evenodd" /><path d="M14.25 5.25a5.23 5.23 0 0 0-1.279-3.434 9.768 9.768 0 0 1 6.963 6.963A5.23 5.23 0 0 0 16.5 7.5h-1.875a.375.375 0 0 1-.375-.375V5.25Z" /></svg> },
-    { id: 2, angka: "567", label: "Laporan Selesai", baseColor: "bg-[#10B981]", hoverBorder: "hover:border-[#10B981]", hoverText: "group-hover:text-[#10B981]", icon: <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8"><path fillRule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm13.36-1.814a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z" clipRule="evenodd" /></svg> },
-    { id: 3, angka: "89", label: "Sedang Diproses", baseColor: "bg-[#F59E0B]", hoverBorder: "hover:border-[#F59E0B]", hoverText: "group-hover:text-[#F59E0B]", icon: <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8"><path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM12.75 6a.75.75 0 0 0-1.5 0v6c0 .414.336.75.75.75h4.5a.75.75 0 0 0 0-1.5h-3.75V6Z" clipRule="evenodd" /></svg> },
-    { id: 4, angka: "4.321", label: "Total Vote", baseColor: "bg-[#EF4444]", hoverBorder: "hover:border-[#EF4444]", hoverText: "group-hover:text-[#EF4444]", icon: <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8"><path fillRule="evenodd" d="M11.99 21.008c-.026-.008-.052-.017-.078-.026-.201-.067-1.428-.485-3.08-1.503-1.637-1.01-3.522-2.585-4.945-4.639C2.463 12.766 1.5 10.428 1.5 7.95c0-3.327 2.673-6 6-6 1.944 0 3.784.957 4.99 2.502C13.696 2.907 15.536 1.95 17.5 1.95c3.327 0 6 2.673 6 6 0 2.478-.963 4.816-2.387 6.889-1.423 2.054-3.308 3.63-4.945 4.64-1.652 1.017-2.88 1.435-3.08 1.502a.75.75 0 0 1-.077.026.155.155 0 0 1-.02.006Z" clipRule="evenodd" /></svg> }
+    { id: 1, angka: "1.235", label: "Total Laporan", baseColor: "bg-primary", hoverBorder: "hover:border-primary", hoverText: "group-hover:text-primary", icon: <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 md:w-8 md:h-8"><path fillRule="evenodd" d="M5.625 1.5H9a3.75 3.75 0 0 1 3.75 3.75v1.875c0 1.036.84 1.875 1.875 1.875H16.5a3.75 3.75 0 0 1 3.75 3.75v7.875c0 1.035-.84 1.875-1.875 1.875H5.625a1.875 1.875 0 0 1-1.875-1.875V3.375c0-1.036.84-1.875 1.875-1.875Zm5.845 17.03a.75.75 0 0 0 1.06 0l3-3a.75.75 0 1 0-1.06-1.06l-1.72 1.72V12a.75.75 0 0 0-1.5 0v4.19l-1.72-1.72a.75.75 0 0 0-1.06 1.06l3 3Z" clipRule="evenodd" /><path d="M14.25 5.25a5.23 5.23 0 0 0-1.279-3.434 9.768 9.768 0 0 1 6.963 6.963A5.23 5.23 0 0 0 16.5 7.5h-1.875a.375.375 0 0 1-.375-.375V5.25Z" /></svg> },
+    { id: 2, angka: "567", label: "Laporan Selesai", baseColor: "bg-[#10B981]", hoverBorder: "hover:border-[#10B981]", hoverText: "group-hover:text-[#10B981]", icon: <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 md:w-8 md:h-8"><path fillRule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm13.36-1.814a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z" clipRule="evenodd" /></svg> },
+    { id: 3, angka: "89", label: "Sedang Diproses", baseColor: "bg-[#F59E0B]", hoverBorder: "hover:border-[#F59E0B]", hoverText: "group-hover:text-[#F59E0B]", icon: <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 md:w-8 md:h-8"><path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM12.75 6a.75.75 0 0 0-1.5 0v6c0 .414.336.75.75.75h4.5a.75.75 0 0 0 0-1.5h-3.75V6Z" clipRule="evenodd" /></svg> },
+    { id: 4, angka: "4.321", label: "Total Vote", baseColor: "bg-[#EF4444]", hoverBorder: "hover:border-[#EF4444]", hoverText: "group-hover:text-[#EF4444]", icon: <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 md:w-8 md:h-8"><path fillRule="evenodd" d="M11.99 21.008c-.026-.008-.052-.017-.078-.026-.201-.067-1.428-.485-3.08-1.503-1.637-1.01-3.522-2.585-4.945-4.639C2.463 12.766 1.5 10.428 1.5 7.95c0-3.327 2.673-6 6-6 1.944 0 3.784.957 4.99 2.502C13.696 2.907 15.536 1.95 17.5 1.95c3.327 0 6 2.673 6 6 0 2.478-.963 4.816-2.387 6.889-1.423 2.054-3.308 3.63-4.945 4.64-1.652 1.017-2.88 1.435-3.08 1.502a.75.75 0 0 1-.077.026.155.155 0 0 1-.02.006Z" clipRule="evenodd" /></svg> }
   ];
 
   return (
-    <section id="statistik" className="py-24 bg-gray-50">
+    <section id="statistik" className="py-16 md:py-24 bg-gray-50">
       <div className="max-w-7xl mx-auto px-6">
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-[#1E3A8A] mb-5 tracking-tight">
+        <div className="text-center max-w-3xl mx-auto mb-12 md:mb-16">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#1E3A8A] mb-4 md:mb-5 tracking-tight">
             Insight & Perkembangan Laporan Publik
           </h2>
-          <p className="text-gray-500 text-lg leading-relaxed">
+          <p className="text-gray-500 text-base md:text-lg leading-relaxed">
             Pantau perkembangan isu di lingkungan Anda melalui data terstruktur yang membantu memahami prioritas dan dampak laporan masyarakat.
           </p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
           {dataStatistik.map((item) => (
-            <div key={item.id} className={`group ${item.baseColor} text-white rounded-2xl p-8 flex flex-col items-center justify-center text-center border-2 border-transparent hover:bg-white ${item.hoverBorder} transition-colors duration-300`}>
-              <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center mb-6 group-hover:bg-gray-100 transition-colors duration-300">
+            <div key={item.id} className={`group ${item.baseColor} text-white rounded-2xl p-6 md:p-8 flex flex-col items-center justify-center text-center border-2 border-transparent hover:bg-white ${item.hoverBorder} transition-colors duration-300`}>
+              <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-white/20 flex items-center justify-center mb-4 md:mb-6 group-hover:bg-gray-100 transition-colors duration-300">
                 <div className={`text-white ${item.hoverText} transition-colors duration-300`}>{item.icon}</div>
               </div>
-              <h3 className={`text-4xl font-bold mb-2 tracking-tight ${item.hoverText} transition-colors duration-300`}>{item.angka}</h3>
-              <p className={`font-medium ${item.hoverText} transition-colors duration-300`}>{item.label}</p>
+              <h3 className={`text-3xl md:text-4xl font-bold mb-1 md:mb-2 tracking-tight ${item.hoverText} transition-colors duration-300`}>{item.angka}</h3>
+              <p className={`text-sm md:text-base font-medium ${item.hoverText} transition-colors duration-300`}>{item.label}</p>
             </div>
           ))}
         </div>
@@ -256,10 +312,10 @@ const Statistik = () => {
 // --- 6. KOMPONEN FOOTER ---
 const Footer = () => {
   return (
-    <footer className="bg-linear-to-r from-primary to-[#10B981] text-white pt-20 pb-8">
+    <footer className="bg-linear-to-r from-primary to-[#10B981] text-white pt-16 md:pt-20 pb-8">
       <div className="max-w-7xl mx-auto px-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8 mb-16">
-          <div className="space-y-6 lg:col-span-1">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-8 mb-12 md:mb-16">
+          <div className="space-y-4 md:space-y-6 lg:col-span-1">
             <div 
               className="flex items-center gap-2 font-bold text-xl cursor-pointer"
               onClick={(e) => scrollToSection(e, 'beranda')}
@@ -284,8 +340,8 @@ const Footer = () => {
             </div>
           </div>
           <div>
-            <h4 className="text-lg font-semibold mb-6">Navigasi</h4>
-            <ul className="space-y-4 text-blue-100 text-sm">
+            <h4 className="text-lg font-semibold mb-4 md:mb-6">Navigasi</h4>
+            <ul className="space-y-3 md:space-y-4 text-blue-100 text-sm">
               <li><a href="#beranda" onClick={(e) => scrollToSection(e, 'beranda')} className="hover:text-white transition-colors">Beranda</a></li>
               <li><a href="#keunggulan" onClick={(e) => scrollToSection(e, 'keunggulan')} className="hover:text-white transition-colors">Keunggulan</a></li>
               <li><a href="#fitur" onClick={(e) => scrollToSection(e, 'fitur')} className="hover:text-white transition-colors">Fitur</a></li>
@@ -293,8 +349,8 @@ const Footer = () => {
             </ul>
           </div>
           <div>
-            <h4 className="text-lg font-semibold mb-6">Bantuan</h4>
-            <ul className="space-y-4 text-blue-100 text-sm">
+            <h4 className="text-lg font-semibold mb-4 md:mb-6">Bantuan</h4>
+            <ul className="space-y-3 md:space-y-4 text-blue-100 text-sm">
               <li><a href="#" className="hover:text-white transition-colors">Pusat Bantuan</a></li>
               <li><a href="#" className="hover:text-white transition-colors">Hubungi Kami</a></li>
               <li><a href="#" className="hover:text-white transition-colors">Kebijakan Privasi</a></li>
@@ -302,8 +358,8 @@ const Footer = () => {
             </ul>
           </div>
           <div>
-            <h4 className="text-lg font-semibold mb-6">Kontak</h4>
-            <ul className="space-y-4 text-blue-100 text-sm">
+            <h4 className="text-lg font-semibold mb-4 md:mb-6">Kontak</h4>
+            <ul className="space-y-3 md:space-y-4 text-blue-100 text-sm">
               <li className="flex items-start gap-3">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 shrink-0 mt-0.5"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-2.896-1.596-5.496-4.096-7.092-6.904l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" /></svg>
                 <span>+62 812 3433 2121</span>

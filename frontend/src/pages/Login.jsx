@@ -1,8 +1,7 @@
-// import React,
 import { useState } from "react";
 import axiosInstance from "../api/axios";
 import { Link, useNavigate } from "react-router-dom";
-import { ShieldCheck, Users, BarChart3, Lock, Eye, EyeOff } from "lucide-react";
+import { ShieldCheck, Users, BarChart3, Lock, Eye, EyeOff, ArrowLeft } from "lucide-react"; // Tambahkan ArrowLeft
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
@@ -29,9 +28,9 @@ export default function Login() {
   };
 
   return (
-    <div className="h-screen flex bg-gray-50 overflow-hidden">
+    <div className="min-h-screen lg:h-screen flex bg-gray-50 overflow-y-auto lg:overflow-hidden">
+      
       <div className="hidden lg:flex lg:w-2/5 bg-primary pt-8 pb-0 flex-col justify-between relative">
-        
         <div className="relative z-10 mb-2 px-10">
           <div
             onClick={() => navigate("/")}
@@ -109,22 +108,32 @@ export default function Login() {
           />
         </div>
 
-        {/* Aksen Lingkaran Latar Belakang */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
       </div>
 
-      <div className="w-full lg:w-3/5 flex items-center justify-center p-6 relative">
+      <div className="w-full lg:w-3/5 flex items-center justify-center p-4 sm:p-8 relative my-auto lg:my-0">
         <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] bg-size-[16px_16px] opacity-30"></div>
 
-        <div className="w-full max-w-xl bg-white p-8 rounded-2xl shadow-xl border border-gray-100 relative z-10">
-          <div className="flex flex-col items-center mb-6">
-            <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center mb-4 shadow-inner">
-              <Lock className="w-7 h-7 text-primary" />
+        <div className="w-full max-w-xl bg-white p-6 sm:p-8 rounded-2xl shadow-xl border border-gray-100 relative z-10">
+          
+          {/* TOMBOL BACK KHUSUS MOBILE */}
+          <button
+            type="button"
+            onClick={() => navigate("/")}
+            className="absolute top-4 left-4 sm:top-6 sm:left-6 p-2 text-primary hover:bg-blue-50 rounded-full transition-colors cursor-pointer lg:hidden"
+            title="Kembali ke Beranda"
+          >
+            <ArrowLeft className="w-6 h-6" />
+          </button>
+
+          <div className="flex flex-col items-center mb-6 mt-4 sm:mt-0">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-blue-50 rounded-2xl flex items-center justify-center mb-4 shadow-inner">
+              <Lock className="w-6 h-6 sm:w-7 sm:h-7 text-primary" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-800">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-800 text-center">
               Masuk ke Akun Anda
             </h2>
-            <p className="text-gray-500 text-sm mt-1">
+            <p className="text-gray-500 text-xs sm:text-sm mt-1 text-center">
               Masuk untuk melanjutkan ke dashboard CivicLens
             </p>
           </div>
@@ -137,7 +146,7 @@ export default function Login() {
                 placeholder="Masukkan email Anda"
                 required
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full p-3.5 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-shadow bg-gray-50/50"
+                className="w-full p-3 sm:p-3.5 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-shadow bg-gray-50/50"
               />
             </div>
 
@@ -148,7 +157,7 @@ export default function Login() {
                 </label>
                 <button
                   type="button"
-                  className="text-sm text-primary font-bold hover:underline"
+                  className="text-xs sm:text-sm text-primary font-bold hover:underline"
                 >
                   Lupa Password?
                 </button>
@@ -159,7 +168,7 @@ export default function Login() {
                   placeholder="Masukkan password Anda"
                   required
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full p-3.5 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-shadow bg-gray-50/50 pr-12"
+                  className="w-full p-3 sm:p-3.5 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-shadow bg-gray-50/50 pr-12"
                 />
                 <button
                   type="button"
@@ -177,15 +186,15 @@ export default function Login() {
 
             <button
               type="submit"
-              className="w-full py-3.5 cursor-pointer bg-primary text-white rounded-xl font-bold text-base shadow-md hover:bg-blue-700 transition-colors mt-2"
+              className="w-full py-3 sm:py-3.5 cursor-pointer bg-primary text-white rounded-xl font-bold text-sm sm:text-base shadow-md hover:bg-blue-700 transition-colors mt-2"
             >
               Masuk
             </button>
           </form>
 
-          <div className="mt-6 flex items-center gap-4">
+          <div className="mt-5 flex items-center gap-3 sm:gap-4">
             <div className="flex-1 h-px bg-gray-200"></div>
-            <span className="text-sm text-gray-400 font-medium">
+            <span className="text-xs sm:text-sm text-gray-400 font-medium whitespace-nowrap">
               atau masuk dengan
             </span>
             <div className="flex-1 h-px bg-gray-200"></div>
@@ -193,7 +202,7 @@ export default function Login() {
 
           <button
             type="button"
-            className="w-full py-3.5 mt-6 cursor-pointer   bg-white border border-gray-200 text-gray-700 rounded-xl font-bold text-base flex items-center justify-center gap-3 hover:bg-gray-50 transition-colors shadow-sm"
+            className="w-full py-3 sm:py-3.5 mt-5 cursor-pointer bg-white border border-gray-200 text-gray-700 rounded-xl font-bold text-sm sm:text-base flex items-center justify-center gap-3 hover:bg-gray-50 transition-colors shadow-sm"
           >
             <img
               src="https://www.svgrepo.com/show/475656/google-color.svg"
@@ -203,7 +212,7 @@ export default function Login() {
             Lanjutkan dengan Google
           </button>
 
-          <p className="text-center mt-6 text-sm text-gray-600">
+          <p className="text-center mt-6 text-xs sm:text-sm text-gray-600">
             Belum punya akun?{" "}
             <Link
               to="/register"

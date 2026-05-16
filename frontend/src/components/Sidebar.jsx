@@ -1,8 +1,8 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Map, FileText, PlusCircle, BarChart2, Bell, User, LogOut } from 'lucide-react';
+import { Map, FileText, PlusCircle, BarChart2, Bell, User, LogOut, X } from 'lucide-react';
 import axiosInstance from '../api/axios';
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen, setIsOpen }) => {
   const navigate = useNavigate();
 
   const menuItems = [
@@ -25,29 +25,48 @@ const Sidebar = () => {
     }
   };
 
+  const handleMenuClick = () => {
+    if (setIsOpen) setIsOpen(false);
+  };
+
   return (
-    <aside className="w-64 h-screen bg-linear-to-r from-primary to-[#10B981] text-white flex flex-col justify-between fixed top-0 left-0 shadow-xl">
+    <aside 
+      className={`w-64 h-screen bg-linear-to-r from-primary to-[#10B981] text-white flex flex-col justify-between fixed top-0 left-0 shadow-xl z-[50] transition-transform duration-300 ease-in-out ${
+        isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+      }`}
+    >
       <div>
-        
-        <div 
-          onClick={() => navigate('/')}
-          className="flex items-center gap-3 font-bold text-2xl p-6 border-b border-white/20 cursor-pointer hover:bg-white/10 transition-colors"
-          title="Kembali ke Beranda"
-        >
-          <img 
-            src="/img/Logo.png" 
-            alt="CivicLens Logo" 
-            className="w-8 h-8 object-contain"
-          />
-          CivicLens
+        <div className="flex items-center justify-between p-6 border-b border-white/20">
+          <div 
+            onClick={() => navigate('/')}
+            className="flex items-center gap-3 font-bold text-2xl cursor-pointer hover:opacity-80 transition-opacity"
+            title="Kembali ke Beranda"
+          >
+            <img 
+              src="/img/Logo.png" 
+              alt="CivicLens Logo" 
+              className="w-8 h-8 object-contain"
+            />
+            CivicLens
+          </div>
+          
+          {/* PENTING: type="button" ditambahkan */}
+          <button 
+            type="button"
+            onClick={() => setIsOpen(false)}
+            className="lg:hidden p-1 bg-white/10 rounded-lg hover:bg-white/20 transition-colors cursor-pointer"
+          >
+            <X className="w-6 h-6" />
+          </button>
         </div>
 
-        <nav className="mt-6 px-4 space-y-2">
+        <nav className="mt-6 px-4 space-y-2 overflow-y-auto">
           {menuItems.map((item, index) => (
             <NavLink
               key={index}
               to={item.path}
               end={item.path === '/dashboard'}
+              onClick={handleMenuClick}
               className={({ isActive }) =>
                 `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ${
                   isActive
@@ -64,7 +83,9 @@ const Sidebar = () => {
       </div>
 
       <div className="p-4 mb-4 border-t border-white/20">
+        {/* PENTING: type="button" ditambahkan */}
         <button 
+          type="button"
           onClick={handleLogout}
           className="flex cursor-pointer items-center gap-3 w-full px-4 py-3 rounded-xl transition-all duration-300 hover:bg-red-500 hover:text-white font-medium text-white/90"
         >

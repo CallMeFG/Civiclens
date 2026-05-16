@@ -31,82 +31,78 @@ export default function Insight() {
   }, []);
 
   // 💡 KALKULASI DINAMIS UNTUK 4 KARTU STATISTIK ATAS
-  // Menjumlahkan semua value dari pieData untuk mendapatkan total keseluruhan laporan
   const totalLaporan = data.pieData.reduce((sum, item) => sum + item.value, 0);
-  
-  // Mengambil value khusus untuk status tertentu
   const sedangDiproses = data.pieData.find(item => item.name.toLowerCase() === 'diproses')?.value || 0;
   const selesai = data.pieData.find(item => item.name.toLowerCase() === 'selesai')?.value || 0;
-  
   const totalVote = data.totalVote || 0;
 
   return (
-    <div className="space-y-6 pb-10">
+    <div className="space-y-4 sm:space-y-6 pb-6 sm:pb-10">
       {/* Header Halaman */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-800">Insight & Analitik</h1>
-        <p className="text-gray-500 mt-1">Lihat data dan analitik laporan masyarakat</p>
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-800">Insight & Analitik</h1>
+        <p className="text-sm sm:text-base text-gray-500 mt-1">Lihat data dan analitik laporan masyarakat</p>
       </div>
 
       {isLoading ? (
-        <div className="flex justify-center items-center h-64 bg-white rounded-2xl shadow-sm border border-gray-100">
-          <p className="text-gray-500 font-medium">Memuat data analitik...</p>
+        <div className="flex justify-center items-center h-48 sm:h-64 bg-white rounded-2xl shadow-sm border border-gray-100">
+          <p className="text-sm sm:text-base text-gray-500 font-medium">Memuat data analitik...</p>
         </div>
       ) : (
         <>
-          {/* 4 KARTU STATISTIK (DIKEMBALIKAN SESUAI DESAIN) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-primary text-white rounded-2xl p-6 shadow-md flex items-center gap-4 hover:-translate-y-1 transition-transform">
-              <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center shrink-0">
-                <FileText className="w-7 h-7" />
+          {/* 4 KARTU STATISTIK */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            <div className="bg-primary text-white rounded-2xl p-5 sm:p-6 shadow-md flex items-center gap-4 hover:-translate-y-1 transition-transform">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                <FileText className="w-6 h-6 sm:w-7 sm:h-7" />
               </div>
               <div>
-                <h3 className="text-2xl font-bold">{totalLaporan}</h3>
-                <p className="text-sm text-blue-100 font-medium">Total laporan</p>
+                <h3 className="text-xl sm:text-2xl font-bold">{totalLaporan}</h3>
+                <p className="text-xs sm:text-sm text-blue-100 font-medium">Total laporan</p>
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex items-center gap-4 hover:-translate-y-1 transition-transform">
-              <div className="w-14 h-14 rounded-full bg-orange-50 text-orange-500 flex items-center justify-center shrink-0">
-                <Clock className="w-7 h-7" />
+            <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-gray-100 flex items-center gap-4 hover:-translate-y-1 transition-transform">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-orange-50 text-orange-500 flex items-center justify-center shrink-0">
+                <Clock className="w-6 h-6 sm:w-7 sm:h-7" />
               </div>
               <div>
-                <h3 className="text-2xl font-bold text-gray-800">{sedangDiproses}</h3>
-                <p className="text-sm text-gray-500 font-medium">Sedang diproses</p>
+                <h3 className="text-xl sm:text-2xl font-bold text-gray-800">{sedangDiproses}</h3>
+                <p className="text-xs sm:text-sm text-gray-500 font-medium">Sedang diproses</p>
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex items-center gap-4 hover:-translate-y-1 transition-transform">
-              <div className="w-14 h-14 rounded-full bg-green-50 text-green-500 flex items-center justify-center shrink-0">
-                <CheckCircle className="w-7 h-7" />
+            <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-gray-100 flex items-center gap-4 hover:-translate-y-1 transition-transform">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-green-50 text-green-500 flex items-center justify-center shrink-0">
+                <CheckCircle className="w-6 h-6 sm:w-7 sm:h-7" />
               </div>
               <div>
-                <h3 className="text-2xl font-bold text-gray-800">{selesai}</h3>
-                <p className="text-sm text-gray-500 font-medium">Selesai</p>
+                <h3 className="text-xl sm:text-2xl font-bold text-gray-800">{selesai}</h3>
+                <p className="text-xs sm:text-sm text-gray-500 font-medium">Selesai</p>
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex items-center gap-4 hover:-translate-y-1 transition-transform">
-              <div className="w-14 h-14 rounded-full bg-red-50 text-red-500 flex items-center justify-center shrink-0">
-                <Heart className="w-7 h-7" />
+            <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-gray-100 flex items-center gap-4 hover:-translate-y-1 transition-transform">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-red-50 text-red-500 flex items-center justify-center shrink-0">
+                <Heart className="w-6 h-6 sm:w-7 sm:h-7" />
               </div>
               <div>
-                <h3 className="text-2xl font-bold text-gray-800">{totalVote}</h3>
-                <p className="text-sm text-gray-500 font-medium">Total Vote</p>
+                <h3 className="text-xl sm:text-2xl font-bold text-gray-800">{totalVote}</h3>
+                <p className="text-xs sm:text-sm text-gray-500 font-medium">Total Vote</p>
               </div>
             </div>
           </div>
 
-          {/* AREA GRAFIK (DIKEMBALIKAN SESUAI DESAIN & NAMA) */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* AREA GRAFIK */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             
             {/* BAR CHART */}
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-              <h3 className="text-lg font-bold text-gray-800 mb-6">Laporan Berdasarkan Kategori</h3>
-              <div className="h-64">
+            <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100">
+              <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-4 sm:mb-6">Laporan Berdasarkan Kategori</h3>
+              <div className="h-56 sm:h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={data.barData}>
-                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#9CA3AF', fontSize: 12}} />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#9CA3AF', fontSize: 10}} />
                     <Tooltip cursor={{fill: '#F3F4F6'}} contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)'}} />
                     <Bar dataKey="total" fill="#4F46E5" radius={[1]} />
                   </BarChart>
@@ -115,12 +111,12 @@ export default function Insight() {
             </div>
 
             {/* PIE CHART */}
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-              <h3 className="text-lg font-bold text-gray-800 mb-6">Status Laporan</h3>
-              <div className="h-64">
+            <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100">
+              <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-4 sm:mb-6">Status Laporan</h3>
+              <div className="h-56 sm:h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-                    <Pie data={data.pieData} innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
+                    <Pie data={data.pieData} innerRadius={50} outerRadius={70} paddingAngle={5} dataKey="value">
                       {data.pieData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
@@ -130,52 +126,52 @@ export default function Insight() {
                 </ResponsiveContainer>
               </div>
               {/* Custom Legend */}
-              <div className="flex justify-center flex-wrap gap-4 mt-4">
+              <div className="flex justify-center flex-wrap gap-3 sm:gap-4 mt-2 sm:mt-4">
                 {data.pieData.map((item, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-full" style={{backgroundColor: item.color}}></span>
-                    <span className="text-sm text-gray-600 font-medium">{item.name}</span>
+                  <div key={index} className="flex items-center gap-1.5 sm:gap-2">
+                    <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full" style={{backgroundColor: item.color}}></span>
+                    <span className="text-xs sm:text-sm text-gray-600 font-medium">{item.name}</span>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* LINE CHART */}
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-              <h3 className="text-lg font-bold text-gray-800 mb-6">Tren laporan (20 Hari Terakhir)</h3>
-              <div className="h-64">
+            <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100">
+              <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-4 sm:mb-6">Tren laporan (20 Hari Terakhir)</h3>
+              <div className="h-56 sm:h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={data.lineData}>
-                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#9CA3AF', fontSize: 12}} />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#9CA3AF', fontSize: 10}} />
                     <Tooltip contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)'}} />
-                    <Line type="monotone" dataKey="value" stroke="#2563EB" strokeWidth={3} dot={{r: 4, fill: '#2563EB', strokeWidth: 2, stroke: '#fff'}} activeDot={{r: 6}} />
+                    <Line type="monotone" dataKey="value" stroke="#2563EB" strokeWidth={3} dot={{r: 3, fill: '#2563EB', strokeWidth: 2, stroke: '#fff'}} activeDot={{r: 5}} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
             </div>
 
             {/* TOP LOCATIONS */}
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-              <h3 className="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
-                <MapPin className="w-5 h-5 text-red-500" />
+            <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100">
+              <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-4 sm:mb-6 flex items-center gap-2">
+                <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-red-500" />
                 Lokasi terbanyak di laporkan
               </h3>
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {data.topLocations.map((loc, index) => (
-                  <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-blue-50 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold">
+                  <div key={index} className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-xl hover:bg-blue-50 transition-colors">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-sm sm:text-base">
                         #{index + 1}
                       </div>
-                      <span className="font-semibold text-gray-800 line-clamp-1">{loc.name}</span>
+                      <span className="font-semibold text-gray-800 text-sm sm:text-base line-clamp-1">{loc.name}</span>
                     </div>
-                    <div className="font-bold text-blue-600 bg-white px-3 py-1 rounded-lg border border-blue-100 shadow-sm shrink-0">
+                    <div className="font-bold text-blue-600 bg-white px-2.5 sm:px-3 py-1 rounded-lg border border-blue-100 shadow-sm shrink-0 text-xs sm:text-sm">
                       {loc.total} Laporan
                     </div>
                   </div>
                 ))}
                 {data.topLocations.length === 0 && (
-                  <div className="text-center text-gray-500 py-10 font-medium">Belum ada data lokasi.</div>
+                  <div className="text-center text-xs sm:text-sm text-gray-500 py-8 sm:py-10 font-medium">Belum ada data lokasi.</div>
                 )}
               </div>
             </div>

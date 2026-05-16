@@ -119,28 +119,31 @@ export default function BuatLaporan() {
     }
   };
   
-
   return (
-    <div className="p-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">Buat Laporan Baru</h1>
-        <p className="text-gray-500">Laporkan masalah infrastruktur atau fasilitas publik di sekitar Anda.</p>
+    // Padding responsif: p-4 di HP, p-6 di Desktop
+    <div className="p-4 sm:p-6 lg:p-8">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">Buat Laporan Baru</h1>
+        <p className="text-sm sm:text-base text-gray-500">Laporkan masalah infrastruktur atau fasilitas publik di sekitar Anda.</p>
       </div>
 
       {errorMsg && (
-        <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-xl font-medium border border-red-200">
+        <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-xl text-sm sm:text-base font-medium border border-red-200">
           {errorMsg}
         </div>
       )}
 
       {successMsg && (
-        <div className="mb-6 p-4 bg-green-50 text-green-600 rounded-xl font-medium border border-green-200">
+        <div className="mb-6 p-4 bg-green-50 text-green-600 rounded-xl text-sm sm:text-base font-medium border border-green-200">
           {successMsg}
         </div>
       )}
 
-      <div className="flex flex-col lg:flex-row gap-8">
-        <div className="w-full lg:w-1/2 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+      {/* Susunan responsif: di HP atas-bawah (flex-col), di Desktop kiri-kanan (lg:flex-row) */}
+      <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
+        
+        {/* BAGIAN FORM KIRI */}
+        <div className="w-full lg:w-1/2 bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sm:p-6">
           <form onSubmit={handleSubmit} className="space-y-5">
             
             <div>
@@ -150,7 +153,7 @@ export default function BuatLaporan() {
                 value={dataForm.category_id}
                 onChange={handleChange}
                 required
-                className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none"
+                className="w-full p-3 sm:p-3.5 text-sm sm:text-base border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none bg-white"
               >
                 {categories.length > 0 ? (
                   categories.map((kategori) => (
@@ -173,7 +176,7 @@ export default function BuatLaporan() {
                 onChange={handleChange}
                 required
                 placeholder="Contoh: Jalan berlubang di depan sekolah" 
-                className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none" 
+                className="w-full p-3 sm:p-3.5 text-sm sm:text-base border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none" 
               />
             </div>
 
@@ -186,7 +189,7 @@ export default function BuatLaporan() {
                 onChange={handleChange}
                 required
                 placeholder="Ceritakan detail masalah yang Anda temukan..." 
-                className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none resize-none"
+                className="w-full p-3 sm:p-3.5 text-sm sm:text-base border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none resize-none"
               ></textarea>
             </div>
 
@@ -194,27 +197,27 @@ export default function BuatLaporan() {
               <label className="block text-sm font-bold text-gray-700 mb-2">Unggah Foto Bukti</label>
               <div 
                 onClick={() => fileInputRef.current.click()}
-                className="w-full p-8 border-2 border-dashed border-gray-300 rounded-xl text-center cursor-pointer hover:bg-gray-50 transition-colors"
+                className="w-full p-6 sm:p-8 border-2 border-dashed border-gray-300 rounded-xl text-center cursor-pointer hover:bg-gray-50 transition-colors"
               >
                 {foto ? (
                   <div className="flex flex-col items-center">
                     {(foto instanceof File || foto instanceof Blob) ? (
-                      <img src={URL.createObjectURL(foto)} alt="Preview" className="h-32 w-auto object-cover rounded-lg shadow-sm mb-3" />
+                      <img src={URL.createObjectURL(foto)} alt="Preview" className="h-24 sm:h-32 w-auto object-cover rounded-lg shadow-sm mb-3" />
                     ) : (
-                      <div className="h-32 w-full bg-gray-100 rounded-lg mb-3 flex items-center justify-center text-red-500 text-sm">Preview tidak tersedia</div>
+                      <div className="h-24 sm:h-32 w-full bg-gray-100 rounded-lg mb-3 flex items-center justify-center text-red-500 text-sm">Preview tidak tersedia</div>
                     )}
-                    <p className="text-sm font-medium text-gray-700">{foto.name}</p>
-                    <p className="text-xs text-blue-600 mt-1">Klik untuk mengganti foto</p>
+                    <p className="text-xs sm:text-sm font-medium text-gray-700 truncate w-full px-4">{foto.name}</p>
+                    <p className="text-[10px] sm:text-xs text-blue-600 mt-1">Klik untuk mengganti foto</p>
                   </div>
                 ) : (
                   <div className="flex flex-col items-center">
-                    <div className="w-12 h-12 bg-blue-50 text-primary rounded-full flex items-center justify-center mb-3">
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-50 text-primary rounded-full flex items-center justify-center mb-3">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5 sm:w-6 sm:h-6">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
                       </svg>
                     </div>
-                    <p className="text-sm font-medium text-gray-700">Klik untuk mengunggah foto</p>
-                    <p className="text-xs text-gray-400 mt-1">Maksimal 5MB (JPG, PNG)</p>
+                    <p className="text-xs sm:text-sm font-medium text-gray-700">Klik untuk mengunggah foto</p>
+                    <p className="text-[10px] sm:text-xs text-gray-400 mt-1">Maksimal 5MB (JPG, PNG)</p>
                   </div>
                 )}
               </div>
@@ -230,7 +233,7 @@ export default function BuatLaporan() {
             <button 
               type="submit" 
               disabled={isLoading}
-              className={`w-full py-3.5 rounded-xl font-bold text-white shadow-md transition-all flex items-center justify-center ${
+              className={`w-full py-3.5 mt-2 rounded-xl font-bold text-white shadow-md transition-all flex items-center justify-center text-sm sm:text-base ${
                 isLoading ? 'bg-blue-400 cursor-not-allowed' : 'bg-primary hover:bg-blue-700 hover:shadow-lg'
               }`}
             >
@@ -239,11 +242,14 @@ export default function BuatLaporan() {
           </form>
         </div>
 
-        <div className="w-full lg:w-1/2 h-150 bg-gray-200 rounded-2xl overflow-hidden shadow-sm border border-gray-100 relative">
-          <div className="absolute top-4 left-4 z-4 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-lg shadow-sm border border-gray-100">
-            <p className="text-sm font-semibold text-gray-700">📍 Klik pada peta untuk menandai lokasi</p>
+        {/* BAGIAN PETA KANAN: h-[350px] di HP agar scroll aman, lg:h-[600px] di Desktop */}
+        <div className="w-full lg:w-1/2 h-[350px] sm:h-[450px] lg:h-[600px] bg-gray-200 rounded-2xl overflow-hidden shadow-sm border border-gray-100 relative order-first lg:order-last">
+          <div className="absolute top-4 left-4 right-4 sm:right-auto z-[400] bg-white/90 backdrop-blur-sm px-3 sm:px-4 py-2 rounded-lg shadow-sm border border-gray-100">
+            <p className="text-xs sm:text-sm font-semibold text-gray-700">📍 Klik pada peta untuk menandai lokasi</p>
             {dataForm.latitude && (
-              <p className="text-xs text-gray-500 mt-1 font-mono">Koordinat: {dataForm.latitude.toFixed(4)}, {dataForm.longitude.toFixed(4)}</p>
+              <p className="text-[10px] sm:text-xs text-gray-500 mt-1 font-mono break-all">
+                Koordinat: {dataForm.latitude.toFixed(4)}, {dataForm.longitude.toFixed(4)}
+              </p>
             )}
           </div>
           
@@ -259,6 +265,7 @@ export default function BuatLaporan() {
             <LocationMarker position={position} setPosition={setPosition} setDataForm={setDataForm} />
           </MapContainer>
         </div>
+
       </div>
     </div>
   );

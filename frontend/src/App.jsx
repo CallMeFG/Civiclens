@@ -5,6 +5,9 @@ import DashboardLayout from './layouts/DashboardLayout';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import AOS from 'aos';
+import 'aos/dist/aos.css'; // Import file CSS AOS
+import { useEffect } from 'react';
 
 import Insight from './pages/Insight';
 import LaporanSaya from './pages/LaporanSaya';
@@ -14,6 +17,14 @@ import Profil from './pages/Profil';
 import Notifikasi from './pages/Notifikasi';
 
 function App() {
+  useEffect(() => {
+        AOS.init({
+            duration: 800,
+            once: true,
+            offset: 100,
+        });
+    }, []);
+  
   return (
     <BrowserRouter>
       <Routes>

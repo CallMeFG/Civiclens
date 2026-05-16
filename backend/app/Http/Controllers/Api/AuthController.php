@@ -15,18 +15,18 @@ class AuthController extends Controller
      */
     public function register(Request $request)
     {
-        // 1. Validasi Inputan (Sesuai dengan form React JS)
-        $validated = $request->validate([
-            'namaLengkap' => 'required|string|max:255',
+        // 1. Laravel memvalidasi datangnya 'nama_lengkap' dari React
+        $request->validate([
+            'nama_lengkap' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8',
+            'password' => 'required|string|min:8|confirmed',
         ]);
 
-        // 2. Simpan Data User ke Database
+        // 2. Laravel memasukkan isi 'nama_lengkap' ke dalam kolom 'name' di database
         $user = User::create([
-            'name' => $validated['namaLengkap'], // Di database kolomnya bernama 'name'
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']), // Password wajib di-hash (enkripsi)
+            'name' => $request->nama_lengkap, // <--- PASTIKAN BARIS INI BENAR
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
         ]);
 
         // 3. Terbitkan Token Sanctum
@@ -73,7 +73,33 @@ class AuthController extends Controller
             'token' => $token,
         ], 200);
     }
+ public function updateProfile(Request $request)
+    {
+        $user = $request->user();
 
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'nomor_telepon' => 'nullable|string|max:20',
+            'tanggal_lahir' => 'nullable|date',
+            'jenis_kelamin' => 'nullable|string',
+            'lokasi' => 'nullable|string',
+        ]);
+
+        // Update data ke database
+        $user->update([
+            'name' => $request->name,
+            'nomor_telepon' => $request->nomor_telepon,
+            'tanggal_lahir' => $request->tanggal_lahir,
+            'jenis_kelamin' => $request->jenis_kelamin,
+            'lokasi' => $request->lokasi,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Profil berhasil diperbarui!',
+            'data' => $user
+        ]);
+    }
     /**
      * API untuk Logout Pengguna
      */

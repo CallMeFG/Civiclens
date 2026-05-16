@@ -1,7 +1,8 @@
 // import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Map, FileText, PlusCircle, BarChart2, Bell, User, LogOut, ShieldCheck } from 'lucide-react';
-import axiosInstance from '../api/axios'; // Import konfigurasi axios kita
+// Ikon ShieldCheck dihapus karena diganti dengan Logo.png
+import { Map, FileText, PlusCircle, BarChart2, Bell, User, LogOut } from 'lucide-react';
+import axiosInstance from '../api/axios';
 
 const Sidebar = () => {
   const navigate = useNavigate();
@@ -18,24 +19,33 @@ const Sidebar = () => {
   // Fungsi untuk menangani proses Logout
   const handleLogout = async () => {
     try {
-      // Memanggil API logout (Token sudah otomatis disisipkan oleh axiosInstance)
       await axiosInstance.post('/logout');
     } catch (error) {
       console.error("Gagal logout dari server", error);
     } finally {
-      // Hapus token dari browser
       localStorage.removeItem('token');
-      // Arahkan kembali ke halaman Login
       navigate('/login');
     }
   };
 
   return (
-    <aside className="w-64 h-screen bg-gradient-to-r from-[#2563EB] to-[#10B981] text-white flex flex-col justify-between fixed top-0 left-0">
+    <aside className="w-64 h-screen bg-linear-to-r from-primary to-[#10B981] text-white flex flex-col justify-between fixed top-0 left-0 shadow-xl">
       <div>
-        <div className="flex items-center gap-2 font-bold text-2xl p-6 border-b border-white/20">
-          <ShieldCheck className="w-8 h-8" /> CivicLens
+        
+        {/* BAGIAN HEADER YANG BISA DIKLIK (Navigasi ke Homepage) */}
+        <div 
+          onClick={() => navigate('/')}
+          className="flex items-center gap-3 font-bold text-2xl p-6 border-b border-white/20 cursor-pointer hover:bg-white/10 transition-colors"
+          title="Kembali ke Beranda"
+        >
+          <img 
+            src="/img/Logo.png" 
+            alt="CivicLens Logo" 
+            className="w-8 h-8 object-contain"
+          />
+          CivicLens
         </div>
+
         <nav className="mt-6 px-4 space-y-2">
           {menuItems.map((item, index) => (
             <NavLink
@@ -44,8 +54,8 @@ const Sidebar = () => {
               end={item.path === '/dashboard'}
               className={({ isActive }) =>
                 `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ${
-                  isActive 
-                    ? 'bg-white text-[#2563EB] font-bold shadow-md' 
+                  isActive
+                    ? 'bg-white text-primary font-bold shadow-md'
                     : 'text-white hover:bg-white/10 font-medium'
                 }`
               }
@@ -57,10 +67,11 @@ const Sidebar = () => {
         </nav>
       </div>
 
-      <div className="p-4 border-t border-white/20">
+      {/* BAGIAN BAWAH: Tombol Keluar / Logout */}
+      <div className="p-4 mb-4 border-t border-white/20">
         <button 
           onClick={handleLogout}
-          className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-white hover:bg-red-500/80 transition-all duration-300 font-medium cursor-pointer"
+          className="flex cursor-pointer items-center gap-3 w-full px-4 py-3 rounded-xl transition-all duration-300 hover:bg-red-500 hover:text-white font-medium text-white/90"
         >
           <LogOut className="w-5 h-5" />
           Keluar
@@ -69,4 +80,5 @@ const Sidebar = () => {
     </aside>
   );
 };
+
 export default Sidebar;

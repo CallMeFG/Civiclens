@@ -10,19 +10,20 @@ class ReportController extends Controller
 {
     public function index()
     {
-        $reports = Report::orderBy('created_at', 'desc')->get();
+        // Menambahkan withCount('votes') agar Laravel menghitung total vote per laporan
+        $reports = Report::with('user')->withCount('votes')->latest()->get();
 
         return response()->json([
             'success' => true,
-            'message' => 'Daftar Laporan Masyarakat',
             'data' => $reports
-        ], 200);
+        ]);
     }
 
     public function store(Request $request)
     {
-        // 1. Validasi Inputan, termasuk foto (opsional, maks 5MB)
+        // 1. Validasi data yang masuk
         $request->validate([
+            'category_id' => 'required|integer',
             'judul' => 'required|string|max:255',
             'deskripsi' => 'required|string',
             'latitude' => 'required|numeric',
@@ -30,23 +31,22 @@ class ReportController extends Controller
             'foto' => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
         ]);
 
-        // 2. Simpan Foto jika diunggah
+        // 2. Proses upload foto (Jika ada)
         $fotoPath = null;
         if ($request->hasFile('foto')) {
-            // Gambar akan disimpan di folder storage/app/public/reports
             $fotoPath = $request->file('foto')->store('reports', 'public');
         }
 
         // 3. Simpan ke Database
-        $report = Report::create([
-            'user_id' => $request->user()->id,
-            'category_id' => 1,
+        $report = \App\Models\Report::create([
+            'user_id' => $request->user()->id, // Mengambil ID dari user yang sedang login
+            'category_id' => $request->category_id,
             'judul' => $request->judul,
             'deskripsi' => $request->deskripsi,
             'latitude' => $request->latitude,
             'longitude' => $request->longitude,
-            'status' => 'Pending',
             'foto' => $fotoPath,
+            'status' => 'Pending', // Status awal (bisa diubah admin)
         ]);
 
         return response()->json([
@@ -54,5 +54,61 @@ class ReportController extends Controller
             'message' => 'Laporan berhasil dikirim!',
             'data' => $report
         ], 201);
+    }
+    public function insights()
+    {
+        // 1. Pie Chart: Menghitung jumlah laporan berdasarkan status
+        $pieData = [
+            ['name' => 'Diproses', 'value' => \App\Models\Report::where('status', 'diproses')->count(), 'color' => '#2563EB'],
+            ['name' => 'Selesai', 'value' => \App\Models\Report::where('status', 'selesai')->count(), 'color' => '#10B981'],
+            ['name' => 'Pending', 'value' => \App\Models\Report::where('status', 'pending')->count(), 'color' => '#F59E0B'],
+            ['name' => 'Ditolak', 'value' => \App\Models\Report::where('status', 'ditolak')->count(), 'color' => '#EF4444'],
+        ];
+
+        // 2. Top Locations: Mengelompokkan alamat yang paling sering dilaporkan
+        $topLocations = \App\Models\Report::select('alamat as name', \Illuminate\Support\Facades\DB::raw('count(*) as total'))
+            ->whereNotNull('alamat')
+            ->where('alamat', '!=', '')
+            ->groupBy('alamat')
+            ->orderByDesc('total')
+            ->limit(3)
+            ->get();
+
+        // 3. Line Chart: Laporan per bulan (Contoh: Jan - Jun)
+        $months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN'];
+        $lineData = [];
+        foreach ($months as $index => $month) {
+            $lineData[] = [
+                'name' => $month,
+                'value' => \App\Models\Report::whereMonth('created_at', $index + 1)->count()
+            ];
+        }
+
+        // 4. Bar Chart: Laporan per Hari dalam Seminggu
+        $days = ['Mon' => 0, 'Tue' => 0, 'Wed' => 0, 'Thu' => 0, 'Fri' => 0, 'Sat' => 0, 'Sun' => 0];
+        $allReports = \App\Models\Report::select('created_at')->get();
+        foreach ($allReports as $report) {
+            $dayName = $report->created_at->format('D'); // Menghasilkan Mon, Tue, dll
+            if (isset($days[$dayName])) {
+                $days[$dayName]++;
+            }
+        }
+
+        $barData = [];
+        foreach ($days as $name => $total) {
+            $barData[] = ['name' => $name, 'total' => $total];
+        }
+
+        // 5. Kembalikan Response JSON yang rapi (DITAMBAH TOTAL VOTE ASLI)
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'pieData' => $pieData,
+                'topLocations' => $topLocations,
+                'lineData' => $lineData,
+                'barData' => $barData,
+                'totalVote' => \App\Models\Vote::count() // <--- INI ADALAH TAMBAHAN SATU BARISNYA
+            ]
+        ]);
     }
 }

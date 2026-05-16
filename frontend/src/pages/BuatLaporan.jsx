@@ -1,5 +1,4 @@
-// import React, 
-import { useState, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -11,17 +10,13 @@ function LocationMarker({ position, setPosition, setDataForm }) {
     click(e) {
       const { lat, lng } = e.latlng;
       setPosition(e.latlng);
-      setDataForm(prev => ({
-        ...prev,
-        latitude: lat,
-        longitude: lng
-      }));
+      setDataForm(prev => ({ ...prev, latitude: lat, longitude: lng }));
     },
   });
 
   return position === null ? null : (
     <Marker position={position}>
-      <Popup>Titik lokasi masalah yang Anda pilih</Popup>
+      <Popup>Titik lokasi: {position.lat.toFixed(4)}, {position.lng.toFixed(4)}</Popup>
     </Marker>
   );
 }
@@ -32,10 +27,13 @@ export default function BuatLaporan() {
   const [position, setPosition] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
-  
+  const [successMsg, setSuccessMsg] = useState('');
+
+  const [categories, setCategories] = useState([]);
   const fileInputRef = useRef(null);
 
   const [dataForm, setDataForm] = useState({
+    category_id: '', 
     judul: '',
     deskripsi: '',
     latitude: '',
@@ -44,26 +42,44 @@ export default function BuatLaporan() {
 
   const [foto, setFoto] = useState(null);
 
+  // 1. Mengambil data kategori (KEMBALI KE PENDEKATAN AWAL ANDA)
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await axiosInstance.get('/categories');
+        const dataKategori = response.data.data; // Menggunakan struktur asli anda
+        setCategories(dataKategori);
+        
+        if (dataKategori && dataKategori.length > 0) {
+          // Kita ambil ID dari item pertama array agar dropdown punya nilai awal
+          setDataForm(prev => ({ ...prev, category_id: dataKategori[0].id }));
+        }
+      } catch (error) {
+        console.error("Gagal mengambil data kategori:", error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
   const handleChange = (e) => {
-    setDataForm({
-      ...dataForm,
-      [e.target.name]: e.target.value
-    });
+    setDataForm({ ...dataForm, [e.target.name]: e.target.value });
   };
 
+  // 2. Perbaikan Foto (YANG SUDAH BERHASIL)
   const handleFileChange = (e) => {
     const selectedFiles = e.target.files;
     if (selectedFiles && selectedFiles.length > 0) {
-      const fileTunggal = selectedFiles; 
+      const fileTunggal = selectedFiles[0]; // Mengambil file pertama
       setFoto(fileTunggal);
     } else {
       setFoto(null);
     }
   };
 
+  // 3. Fungsi Submit Laporan
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!dataForm.latitude || !dataForm.longitude) {
       setErrorMsg('Silakan pilih lokasi masalah pada peta terlebih dahulu.');
       return;
@@ -71,9 +87,11 @@ export default function BuatLaporan() {
 
     setIsLoading(true);
     setErrorMsg('');
+    setSuccessMsg('');
 
     try {
       const formDataToSend = new FormData();
+      formDataToSend.append('category_id', dataForm.category_id);
       formDataToSend.append('judul', dataForm.judul);
       formDataToSend.append('deskripsi', dataForm.deskripsi);
       formDataToSend.append('latitude', dataForm.latitude);
@@ -83,23 +101,30 @@ export default function BuatLaporan() {
         formDataToSend.append('foto', foto);
       }
 
+      // --- PERBAIKAN DI SINI: Ambil token dari localStorage ---
+      // Catatan: Ganti 'token' dengan nama kunci yang kamu gunakan saat menyimpan token di AuthController/Login
+      const token = localStorage.getItem('token'); 
+
       const response = await axiosInstance.post('/reports', formDataToSend, {
         headers: {
-          'Content-Type': 'multipart/form-data'
+          'Content-Type': 'multipart/form-data',
+          // Sertakan Bearer token agar dikenali oleh auth:sanctum Laravel
+          'Authorization': `Bearer ${token}` 
         }
       });
 
       if (response.data.success) {
-        alert('Laporan Anda beserta foto berhasil dikirim dan sedang diproses!');
-        navigate('/laporan-saya'); 
+        setSuccessMsg('Laporan berhasil dikirim!');
+        setTimeout(() => navigate('/dashboard'), 2000);
       }
     } catch (error) {
-      console.error('Error submitting report:', error);
-      setErrorMsg('Gagal mengirim laporan. Pastikan semua data terisi dengan benar atau periksa koneksi server Anda.');
+      console.error("Gagal mengirim laporan:", error);
+      setErrorMsg('Gagal mengirim laporan. Pastikan Anda sudah login, serta semua data dan foto terisi.');
     } finally {
       setIsLoading(false);
     }
   };
+  
 
   return (
     <div className="p-6">
@@ -109,90 +134,110 @@ export default function BuatLaporan() {
       </div>
 
       {errorMsg && (
-        <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-xl border border-red-200 font-medium">
+        <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-xl font-medium border border-red-200">
           {errorMsg}
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        
-        {/* KOLOM KIRI: FORMULIR */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-          <form onSubmit={handleSubmit} className="space-y-6">
+      {successMsg && (
+        <div className="mb-6 p-4 bg-green-50 text-green-600 rounded-xl font-medium border border-green-200">
+          {successMsg}
+        </div>
+      )}
+
+      <div className="flex flex-col lg:flex-row gap-8">
+        <div className="w-full lg:w-1/2 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2">Kategori Masalah</label>
-              <select className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2563EB] outline-none">
-                <option value="Infrastruktur">Infrastruktur (Jalan Rusak, dsb)</option>
-                <option value="Kebersihan">Kebersihan (Tumpukan Sampah, dsb)</option>
-                <option value="Fasilitas Publik">Fasilitas Publik Lainnya</option>
+              <select 
+                name="category_id"
+                value={dataForm.category_id}
+                onChange={handleChange}
+                required
+                className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none"
+              >
+                {categories.length > 0 ? (
+                  categories.map((kategori) => (
+                    <option key={kategori.id} value={kategori.id}>
+                      {kategori.nama_kategori}
+                    </option>
+                  ))
+                ) : (
+                  <option value="">Memuat Kategori...</option>
+                )}
               </select>
             </div>
 
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2">Judul Laporan</label>
-              <input
-                type="text"
+              <input 
+                type="text" 
                 name="judul"
                 value={dataForm.judul}
                 onChange={handleChange}
-                placeholder="Contoh: Jalan berlubang di Jalan Sudirman"
                 required
-                className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2563EB] outline-none transition-shadow"
+                placeholder="Contoh: Jalan berlubang di depan sekolah" 
+                className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none" 
               />
             </div>
 
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2">Deskripsi Detail</label>
-              <textarea
+              <textarea 
+                rows="4" 
                 name="deskripsi"
                 value={dataForm.deskripsi}
                 onChange={handleChange}
-                rows="4"
-                placeholder="Jelaskan secara detail masalah yang terjadi..."
                 required
-                className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2563EB] outline-none transition-shadow"
+                placeholder="Ceritakan detail masalah yang Anda temukan..." 
+                className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none resize-none"
               ></textarea>
             </div>
 
-            {/* AREA UPLOAD FOTO DENGAN PREVIEW */}
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">Unggah Foto</label>
+              <label className="block text-sm font-bold text-gray-700 mb-2">Unggah Foto Bukti</label>
               <div 
                 onClick={() => fileInputRef.current.click()}
-                className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:bg-gray-50 transition cursor-pointer"
+                className="w-full p-8 border-2 border-dashed border-gray-300 rounded-xl text-center cursor-pointer hover:bg-gray-50 transition-colors"
               >
                 {foto ? (
                   <div className="flex flex-col items-center">
-                    {/* PENDEKATAN BARU: Validasi mutlak bahwa foto adalah File/Blob sebelum di-render */}
                     {(foto instanceof File || foto instanceof Blob) ? (
                       <img src={URL.createObjectURL(foto)} alt="Preview" className="h-32 w-auto object-cover rounded-lg shadow-sm mb-3" />
                     ) : (
-                      <div className="h-32 w-full bg-gray-100 rounded-lg mb-3 flex items-center justify-center text-red-500 text-sm">Gagal memuat preview</div>
-                    )}<span className="text-green-600 font-bold text-sm">✓ {foto.name}</span>
-                    <span className="text-gray-400 text-xs mt-1">Klik untuk mengganti foto</span>
+                      <div className="h-32 w-full bg-gray-100 rounded-lg mb-3 flex items-center justify-center text-red-500 text-sm">Preview tidak tersedia</div>
+                    )}
+                    <p className="text-sm font-medium text-gray-700">{foto.name}</p>
+                    <p className="text-xs text-blue-600 mt-1">Klik untuk mengganti foto</p>
                   </div>
                 ) : (
-                  <div>
-                    <div className="text-gray-500 font-medium">Klik atau seret foto ke sini</div>
-                    <div className="text-sm text-gray-400 mt-1">Maksimal 5MB (JPG, PNG)</div>
+                  <div className="flex flex-col items-center">
+                    <div className="w-12 h-12 bg-blue-50 text-primary rounded-full flex items-center justify-center mb-3">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
+                      </svg>
+                    </div>
+                    <p className="text-sm font-medium text-gray-700">Klik untuk mengunggah foto</p>
+                    <p className="text-xs text-gray-400 mt-1">Maksimal 5MB (JPG, PNG)</p>
                   </div>
                 )}
               </div>
-              
               <input 
                 type="file" 
-                accept="image/jpeg, image/png, image/jpg"
-                className="hidden" 
-                ref={fileInputRef}
+                ref={fileInputRef} 
                 onChange={handleFileChange}
+                accept="image/*"
+                className="hidden" 
               />
             </div>
 
-            <button
-              type="submit"
+            <button 
+              type="submit" 
               disabled={isLoading}
-              className={`w-full py-4 rounded-xl font-bold text-white transition-all duration-300 shadow-md ${
-                isLoading ? 'bg-blue-400 cursor-not-allowed' : 'bg-[#2563EB] hover:bg-blue-700 hover:shadow-lg hover:-translate-y-0.5 cursor-pointer'
+              className={`w-full py-3.5 rounded-xl font-bold text-white shadow-md transition-all flex items-center justify-center ${
+                isLoading ? 'bg-blue-400 cursor-not-allowed' : 'bg-primary hover:bg-blue-700 hover:shadow-lg'
               }`}
             >
               {isLoading ? 'Mengirim Laporan...' : 'Kirim Laporan'}
@@ -200,31 +245,26 @@ export default function BuatLaporan() {
           </form>
         </div>
 
-        {/* KOLOM KANAN: PETA INTERAKTIF */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col">
-          <div className="mb-4 flex justify-between items-end">
-            <div>
-              <h3 className="text-lg font-bold text-gray-800">Tentukan Lokasi</h3>
-              <p className="text-sm text-gray-500">Klik pada peta untuk menandai titik lokasi masalah</p>
-            </div>
-            {position && (
-              <div className="text-xs bg-blue-50 text-[#2563EB] px-3 py-1.5 rounded-lg font-medium border border-blue-100">
-                Terpilih: {position.lat.toFixed(4)}, {position.lng.toFixed(4)}
-              </div>
+        <div className="w-full lg:w-1/2 h-150 bg-gray-200 rounded-2xl overflow-hidden shadow-sm border border-gray-100 relative">
+          <div className="absolute top-4 left-4 z-4 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-lg shadow-sm border border-gray-100">
+            <p className="text-sm font-semibold text-gray-700">📍 Klik pada peta untuk menandai lokasi</p>
+            {dataForm.latitude && (
+              <p className="text-xs text-gray-500 mt-1 font-mono">Koordinat: {dataForm.latitude.toFixed(4)}, {dataForm.longitude.toFixed(4)}</p>
             )}
           </div>
-
-          <div className="flex-1 w-full rounded-xl overflow-hidden border border-gray-200 min-h-[400px]">
-            <MapContainer center={[0.5071, 101.4478]} zoom={13} style={{ height: "100%", width: "100%" }}>
-              <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              />
-              <LocationMarker position={position} setPosition={setPosition} setDataForm={setDataForm} />
-            </MapContainer>
-          </div>
+          
+          <MapContainer 
+            center={[0.5071, 101.4478]} 
+            zoom={13} 
+            style={{ height: '100%', width: '100%', zIndex: 1 }}
+          >
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            <LocationMarker position={position} setPosition={setPosition} setDataForm={setDataForm} />
+          </MapContainer>
         </div>
-        
       </div>
     </div>
   );

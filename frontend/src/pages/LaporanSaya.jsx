@@ -1,132 +1,310 @@
-// import React from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, Heart, ChevronRight, ChevronLeft, FileText, Clock, CheckCircle, XCircle } from 'lucide-react';
+import axiosInstance from '../api/axios'; // Menggunakan Axios dengan Token
 
 export default function LaporanSaya() {
-  // State untuk menyimpan teks pencarian [2]
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('Semua Status');
+  const [reports, setReports] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Data Dummy sesuai dengan desain Anda
-  const reports = [
-    {
-      id: 1,
-      title: 'Jalan Rusak',
-      address: 'Jl. Mawar Putih No.12',
-      desc: 'Kondisi jalan berlubang cukup dalam dan lebar, sangat membahayakan, terutama saat hujan',
-      date: 'Dilaporkan 2 April 2026, 10.30',
-      status: 'Urgent',
-      statusColor: 'bg-red-100 text-red-600',
-      likes: 180,
-      image: 'https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&q=80&w=300' // Gambar ilustrasi jalan
-    },
-    {
-      id: 2,
-      title: 'Sampah Menumpuk',
-      address: 'Jl. Mawar Merah No.14',
-      desc: 'Sampah di saluran got sudah menumpuk hingga keluar area, menimbulkan bau tidak sedap',
-      date: 'Dilaporkan 6 April 2026, 17.30',
-      status: 'Selesai',
-      statusColor: 'bg-green-100 text-green-600',
-      likes: 56,
-      image: 'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?auto=format&fit=crop&q=80&w=300' // Gambar ilustrasi sampah
+  // STATE UNTUK PAGINASI NYATA
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5; // Anda bisa mengatur berapa laporan yang tampil per halaman di sini
+
+  // 1. MENGAMBIL DATA DARI BACKEND LARAVEL
+  useEffect(() => {
+    const fetchReports = async () => {
+      try {
+        const response = await axiosInstance.get('/reports');
+        setReports(response.data.data || []);
+      } catch (error) {
+        console.error("Gagal mengambil data laporan saya:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchReports();
+  }, []);
+
+  // 2. LOGIKA KARTU STATISTIK ATAS
+  const totalLaporan = reports.length;
+  const sedangDiproses = reports.filter(r => r.status?.toLowerCase() === 'pending' || r.status?.toLowerCase() === 'diproses').length;
+  const selesai = reports.filter(r => r.status?.toLowerCase() === 'selesai').length;
+  const ditolak = reports.filter(r => r.status?.toLowerCase() === 'ditolak').length;
+
+  // 3. LOGIKA FILTER & PENCARIAN
+  const filteredReports = reports.filter(report => {
+    const titleMatch = report.judul?.toLowerCase().includes(searchTerm.toLowerCase());
+    const descMatch = report.deskripsi?.toLowerCase().includes(searchTerm.toLowerCase());
+    const isSearchMatch = titleMatch || descMatch;
+    
+    const isStatusMatch = statusFilter === 'Semua Status' || report.status?.toLowerCase() === statusFilter.toLowerCase();
+    
+    return isSearchMatch && isStatusMatch;
+  });
+
+  // 4. KONSEP PAGINASI YANG SEBENARNYA
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  // Memotong array data untuk hanya mengambil data di halaman yang aktif saat ini
+  const currentItems = filteredReports.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredReports.length / itemsPerPage);
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+  };
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) setCurrentPage(currentPage - 1);
+  };
+
+  // 5. FUNGSI PEMBANTU UI
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Waktu tidak diketahui';
+    const date = new Date(dateString);
+    return `Dilaporkan ${date.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}, ${date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}`;
+  };
+
+  const getStatusStyle = (status) => {
+    switch (status?.toLowerCase()) {
+      case 'urgent': 
+      case 'ditolak':
+        return 'bg-red-100 text-red-600';
+      case 'pending':
+      case 'diproses':
+        return 'bg-orange-100 text-orange-600';
+      case 'selesai':
+        return 'bg-green-100 text-green-600';
+      default:
+        return 'bg-gray-100 text-gray-600';
     }
-  ];
+  };
+  // Fungsi baru untuk menangani pencarian
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1); // Langsung ubah ke halaman 1 di sini
+  };
 
+  // Fungsi baru untuk menangani filter status
+  const handleStatusChange = (e) => {
+    setStatusFilter(e.target.value);
+    setCurrentPage(1); // Langsung ubah ke halaman 1 di sini
+  };
+// FUNGSI UNTUK MENGIRIM VOTE KE BACKEND
+  const handleVote = async (reportId) => {
+    try {
+      const response = await axiosInstance.post(`/reports/${reportId}/vote`);
+      
+      // Update UI seketika (Optimistic Update) agar tidak perlu loading ulang halaman
+      setReports(reports.map(report => {
+        if (report.id === reportId) {
+          const isVoted = response.data.message === 'voted';
+          return {
+            ...report,
+            votes_count: isVoted ? (report.votes_count || 0) + 1 : (report.votes_count || 0) - 1
+          };
+        }
+        return report;
+      }));
+    } catch (error) {
+      console.error("Gagal melakukan vote:", error);
+    }
+  };
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-10">
       {/* Header Halaman */}
       <div>
         <h1 className="text-2xl font-bold text-gray-800">Laporan Saya</h1>
         <p className="text-gray-500 mt-1">Kelola dan pantau semua laporan yang Anda buat.</p>
       </div>
 
-      {/* 4 Kartu Ringkasan Status */}
+      {/* 4 KARTU STATISTIK */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
-          <div className="p-3 bg-blue-50 rounded-full"><FileText className="w-6 h-6 text-blue-600" /></div>
-          <div><h3 className="text-3xl font-bold text-gray-800">12</h3><p className="text-gray-500 text-sm">Total laporan</p></div>
-        </div>
-        
-        {/* Kartu Aktif Berwarna Oranye Sesuai Desain */}
-        <div className="bg-orange-500 p-6 rounded-2xl shadow-sm flex items-center gap-4">
-          <div className="p-3 bg-white/20 rounded-full"><Clock className="w-6 h-6 text-white" /></div>
-          <div><h3 className="text-3xl font-bold text-white">4</h3><p className="text-white/80 text-sm">Sedang diproses</p></div>
-        </div>
-
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
-          <div className="p-3 bg-green-50 rounded-full"><CheckCircle className="w-6 h-6 text-green-500" /></div>
-          <div><h3 className="text-3xl font-bold text-gray-800">6</h3><p className="text-gray-500 text-sm">Selesai</p></div>
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex items-center gap-4">
+          <div className="w-14 h-14 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+            <FileText className="w-7 h-7" />
+          </div>
+          <div>
+            <h3 className="text-2xl font-bold text-gray-800">{totalLaporan}</h3>
+            <p className="text-sm text-gray-500 font-medium">Total laporan</p>
+          </div>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
-          <div className="p-3 bg-red-50 rounded-full"><XCircle className="w-6 h-6 text-red-500" /></div>
-          <div><h3 className="text-3xl font-bold text-gray-800">2</h3><p className="text-gray-500 text-sm">Ditolak</p></div>
+        <div className="bg-[#f97316] rounded-2xl p-6 shadow-md flex items-center gap-4 text-white">
+          <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+            <Clock className="w-7 h-7" />
+          </div>
+          <div>
+            <h3 className="text-2xl font-bold">{sedangDiproses}</h3>
+            <p className="text-sm text-white/90 font-medium">Sedang diproses</p>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex items-center gap-4">
+          <div className="w-14 h-14 rounded-full bg-green-50 text-green-600 flex items-center justify-center shrink-0">
+            <CheckCircle className="w-7 h-7" />
+          </div>
+          <div>
+            <h3 className="text-2xl font-bold text-gray-800">{selesai}</h3>
+            <p className="text-sm text-gray-500 font-medium">Selesai</p>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex items-center gap-4">
+          <div className="w-14 h-14 rounded-full bg-red-50 text-red-600 flex items-center justify-center shrink-0">
+            <XCircle className="w-7 h-7" />
+          </div>
+          <div>
+            <h3 className="text-2xl font-bold text-gray-800">{ditolak}</h3>
+            <p className="text-sm text-gray-500 font-medium">Ditolak</p>
+          </div>
         </div>
       </div>
 
-      {/* Kolom Pencarian & Filter */}
-      <div className="flex flex-col md:flex-row gap-4 justify-between items-center mt-8">
-        <h3 className="text-lg font-bold text-gray-800 w-full md:w-auto">Daftar Laporan Anda</h3>
-        <div className="flex flex-col md:flex-row w-full md:w-auto gap-4">
-          <div className="relative w-full md:w-96">
-            <Search className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" />
-            <input 
-              type="text" 
-              placeholder="Cari laporan..." 
+      {/* FILTER & PENCARIAN */}
+      <div className="flex flex-col md:flex-row justify-between items-center gap-4 pt-4">
+        <h2 className="text-lg font-bold text-gray-800 w-full md:w-auto">Daftar Laporan Anda</h2>
+        
+        <div className="flex w-full md:w-auto gap-3">
+          <div className="relative w-full md:w-64">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+              type="text"
+              placeholder="Cari laporan..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary transition-all" 
+              onChange={handleSearchChange}
+              className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary transition-all"
             />
           </div>
-          <select className="px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary text-gray-600 font-medium min-w-[160px] cursor-pointer">
-            <option>Semua Status</option>
-            <option>Sedang diproses</option>
-            <option>Selesai</option>
-            <option>Ditolak</option>
+          
+          <select
+            value={statusFilter}
+            onChange={handleStatusChange}
+            className="py-2.5 px-4 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary cursor-pointer text-gray-600 font-medium"
+          >
+            <option value="Semua Status">Semua Status</option>
+            <option value="pending">Pending</option>
+            <option value="diproses">Diproses</option>
+            <option value="selesai">Selesai</option>
+            <option value="ditolak">Ditolak</option>
           </select>
         </div>
       </div>
 
-      {/* Daftar Laporan (List View) */}
+      {/* DAFTAR LAPORAN (Dirender dari currentItems bukan filteredReports) */}
       <div className="space-y-4">
-        {reports.map((report) => (
-          <div key={report.id} className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col md:flex-row gap-6 hover:shadow-md transition-shadow cursor-pointer">
-            <img src={report.image} alt={report.title} className="w-full md:w-48 h-32 object-cover rounded-xl" />
-            
-            <div className="flex-1 flex flex-col justify-between">
-              <div>
-                <h4 className="text-lg font-bold text-primary">{report.title}</h4>
-                <p className="text-sm text-gray-500 mt-1">{report.address}</p>
-                <p className="text-sm text-gray-600 mt-2 line-clamp-2">{report.desc}</p>
-              </div>
-              <p className="text-xs text-gray-400 mt-4">{report.date}</p>
-            </div>
-
-            <div className="flex flex-col items-end justify-between min-w-[120px]">
-              <span className={`px-4 py-1.5 rounded-full text-xs font-bold ${report.statusColor}`}>
-                {report.status}
-              </span>
-              <div className="flex items-center gap-4 mt-4 md:mt-0">
-                <div className="flex items-center gap-1 text-gray-400">
-                  <Heart className="w-4 h-4" /> <span className="text-sm font-medium">{report.likes}</span>
-                </div>
-                <ChevronRight className="w-5 h-5 text-gray-400" />
-              </div>
-            </div>
+        {isLoading ? (
+          <div className="text-center py-12 text-gray-500 font-medium bg-white rounded-2xl border border-gray-100">
+            Mencari riwayat laporan Anda...
           </div>
-        ))}
+        ) : currentItems.length > 0 ? (
+          currentItems.map((report) => (
+            <div key={report.id} className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm flex flex-col md:flex-row gap-6 hover:shadow-md transition-shadow">
+              
+              {/* Gambar Landscape */}
+              <div className="w-full md:w-75 h-48 shrink-0 rounded-xl overflow-hidden bg-gray-100">
+                <img
+                  src={report.foto ? `http://localhost:8000/storage/${report.foto}` : 'https://via.placeholder.com/300x200?text=Tidak+Ada+Foto'}
+                  alt={report.judul}
+                  className="w-full h-full object-cover"
+                  onError={(e) => { e.target.src = 'https://via.placeholder.com/300x200?text=Error' }}
+                />
+              </div>
+
+              {/* Konten Teks Laporan */}
+              <div className="flex-1 flex flex-col py-1">
+                <div className="flex justify-between items-start mb-1">
+                  <h3 className="text-xl font-bold text-[#1E3A8A]">{report.judul}</h3>
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold ${getStatusStyle(report.status || 'Pending')}`}>
+                    {report.status || 'Pending'}
+                  </span>
+                </div>
+
+                <p className="text-sm text-gray-500 font-medium mb-3">
+                  {report.alamat || `${parseFloat(report.latitude).toFixed(4)}, ${parseFloat(report.longitude).toFixed(4)}`}
+                </p>
+
+                <p className="text-gray-600 text-sm mb-6 line-clamp-2 leading-relaxed">
+                  {report.deskripsi}
+                </p>
+
+                <div className="mt-auto flex items-center justify-between text-sm text-gray-500 pt-3 border-t border-gray-50">
+                  <span className="font-medium">{formatDate(report.created_at)}</span>
+                  
+                  <div className="flex items-center gap-5">
+                    {/* Event onClick dipasang pada Ikon Hati */}
+                    <div 
+                      onClick={() => handleVote(report.id)}
+                      className="flex items-center gap-1.5 hover:text-red-500 cursor-pointer transition-colors group"
+                    >
+                      <Heart className="w-4 h-4 group-hover:fill-red-500" />
+                      {/* Menampilkan jumlah vote dari backend, jika null maka 0 */}
+                      <span className="font-medium">{report.votes_count || 0}</span>
+                    </div>
+                    <ChevronRight className="w-5 h-5 cursor-pointer text-gray-400 hover:text-blue-600 transition-colors" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="text-center py-12 bg-white rounded-2xl border border-gray-100 text-gray-500 flex flex-col items-center justify-center">
+            <FileText className="w-10 h-10 text-gray-300 mb-3" />
+            <p className="font-medium">Belum ada laporan ditemukan.</p>
+          </div>
+        )}
       </div>
 
-      {/* Paginasi (Sesuai Desain) */}
-      <div className="flex justify-center items-center gap-2 mt-8 pt-4">
-        <button className="p-2 border border-gray-200 rounded-lg text-gray-400 hover:bg-gray-50 transition-colors"><ChevronLeft className="w-4 h-4" /></button>
-        <button className="w-9 h-9 bg-primary text-white rounded-lg font-medium text-sm shadow-sm">1</button>
-        <button className="w-9 h-9 border border-gray-200 text-gray-600 rounded-lg font-medium text-sm hover:bg-gray-50 transition-colors">2</button>
-        <button className="w-9 h-9 border border-gray-200 text-gray-600 rounded-lg font-medium text-sm hover:bg-gray-50 transition-colors">3</button>
-        <span className="text-gray-400 px-1">...</span>
-        <button className="p-2 border border-gray-200 rounded-lg text-gray-400 hover:bg-gray-50 transition-colors"><ChevronRight className="w-4 h-4" /></button>
-      </div>
+      {/* PAGINASI INTERAKTIF DAN NYATA */}
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center gap-2 pt-6">
+          <button 
+            onClick={handlePrevPage}
+            disabled={currentPage === 1}
+            className={`w-10 h-10 flex items-center justify-center rounded-lg border transition-colors ${
+              currentPage === 1 
+                ? 'border-gray-100 text-gray-300 cursor-not-allowed' 
+                : 'border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-primary cursor-pointer'
+            }`}
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
 
+          {/* Menghasilkan Tombol Angka Halaman Dinamis */}
+          {[...Array(totalPages)].map((_, index) => {
+            const pageNumber = index + 1;
+            return (
+              <button 
+                key={pageNumber}
+                onClick={() => setCurrentPage(pageNumber)}
+                className={`w-10 h-10 flex items-center justify-center rounded-lg font-bold shadow-sm transition-all ${
+                  currentPage === pageNumber
+                    ? 'bg-primary text-white' 
+                    : 'border border-gray-200 text-gray-600 bg-white hover:bg-gray-50 hover:text-primary'
+                }`}
+              >
+                {pageNumber}
+              </button>
+            );
+          })}
+          
+          <button 
+            onClick={handleNextPage}
+            disabled={currentPage === totalPages}
+            className={`w-10 h-10 flex items-center justify-center rounded-lg border transition-colors ${
+              currentPage === totalPages 
+                ? 'border-gray-100 text-gray-300 cursor-not-allowed' 
+                : 'border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-primary cursor-pointer'
+            }`}
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,21 +1,21 @@
 import axios from 'axios';
 
-// Membuat instance axios dengan URL dasar backend Laravel Anda
 const axiosInstance = axios.create({
-  baseURL: 'http://127.0.0.1:8000/api',
+    baseURL: 'http://localhost:8000/api', // Sesuaikan port dengan backend Laravel Anda
 });
 
-// Interceptor untuk secara otomatis menyisipkan Token di setiap request
+// Interceptor: Otomatis menyisipkan Token di setiap request
 axiosInstance.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    (config) => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+    },
+    (error) => {
+        return Promise.reject(error);
     }
-    config.headers['Accept'] = 'application/json';
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);export default axiosInstance;
+);
+
+export default axiosInstance;

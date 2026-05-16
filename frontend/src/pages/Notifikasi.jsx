@@ -27,7 +27,6 @@ export default function Notifikasi() {
   const handleMarkAllAsRead = async () => {
     try {
       await axiosInstance.post('/notifications/mark-read');
-      // Update UI seketika secara lokal agar titik biru hilang
       setNotifications(notifications.map(notif => ({ ...notif, is_read: 1 })));
     } catch (error) {
       console.error("Gagal menandai dibaca:", error);
@@ -59,7 +58,6 @@ export default function Notifikasi() {
 
   return (
     <div className="space-y-6 h-full flex flex-col pb-10">
-      {/* Header Halaman */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Notifikasi</h1>
@@ -74,7 +72,6 @@ export default function Notifikasi() {
         </button>
       </div>
 
-      {/* Tab Navigasi */}
       <div className="flex gap-2 border-b border-gray-200">
         {['Semua', 'Laporan Saya', 'Sistem'].map((tab) => (
           <button
@@ -91,7 +88,6 @@ export default function Notifikasi() {
         ))}
       </div>
 
-      {/* Daftar Notifikasi */}
       <div className="flex-1 space-y-4">
         {isLoading ? (
           <div className="text-center py-12 text-gray-500 font-medium bg-white rounded-2xl border border-gray-100">
@@ -109,12 +105,10 @@ export default function Notifikasi() {
                   !notif.is_read ? 'border-blue-200 bg-blue-50/30' : 'border-gray-100'
                 }`}
               >
-                {/* Ikon Status */}
                 <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${Style.bg} ${Style.color}`}>
                   <Icon className="w-6 h-6" />
                 </div>
 
-                {/* Konten Teks */}
                 <div className="flex-1 min-w-0 pt-1">
                   <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-1 mb-1">
                     <h3 className="font-bold text-gray-800 text-base">{notif.title}</h3>
@@ -130,7 +124,6 @@ export default function Notifikasi() {
                   </span>
                 </div>
 
-                {/* Indikator Belum Dibaca (Titik Biru) */}
                 {!notif.is_read && (
                   <div className="w-3 h-3 rounded-full bg-primary shrink-0 mt-3 shadow-md"></div>
                 )}

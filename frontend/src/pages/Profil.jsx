@@ -28,7 +28,6 @@ export default function Profil() {
       try {
         const response = await axiosInstance.get('/user');
         
-        // Memasukkan data dari Laravel ke dalam state React
         setProfileData({
           namaLengkap: response.data.name || '',
           email: response.data.email || '',
@@ -45,7 +44,6 @@ export default function Profil() {
     fetchUser();
   }, []);
 
-  // MENYIMPAN DATA KE BACKEND
   const handleUpdate = async () => {
     setIsLoading(true);
     setMessage('');
@@ -84,7 +82,7 @@ export default function Profil() {
       )}
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 flex-1">
-        {/* Kolom Kiri: Kartu Profil Ringkas */}
+        {/* Kartu Profil Ringkas */}
         <div className="xl:col-span-1 space-y-6">
           <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm flex flex-col items-center text-center relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-24 bg-linear-to-r from-primary to-[#10B981]"></div>
@@ -109,7 +107,7 @@ export default function Profil() {
           </div>
         </div>
 
-        {/* Kolom Kanan: Formulir Detail Profil */}
+        {/* Kolom Kanan: Form Detail Profil */}
         <div className="xl:col-span-2">
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden h-full">
             <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">

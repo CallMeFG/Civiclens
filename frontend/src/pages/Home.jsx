@@ -1,8 +1,5 @@
-// import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axiosInstance from '../api/axios';
-
-// Helper fungsi untuk Smooth Scroll di React
 const scrollToSection = (e, sectionId) => {
   e.preventDefault();
   const element = document.getElementById(sectionId);
@@ -15,7 +12,6 @@ const scrollToSection = (e, sectionId) => {
 const Navbar = () => {
   const isLoggedIn = !!localStorage.getItem('token');
 
-  // FUNGSI LOGOUT KHUSUS HOMEPAGE
   const handleLogout = async () => {
     try {
       await axiosInstance.post('/logout');
@@ -23,7 +19,7 @@ const Navbar = () => {
       console.error("Gagal logout:", error);
     } finally {
       localStorage.removeItem('token');
-      window.location.reload(); // Memuat ulang halaman agar tombol kembali menjadi Masuk & Daftar
+      window.location.reload();
     }
   };
 
@@ -48,7 +44,7 @@ const Navbar = () => {
         </ul>
         
         <div className="hidden md:flex items-center gap-4 text-sm font-medium">
-          {/* LOGIKA AUTENTIKASI: Jika sudah login, tampilkan "Ke Dashboard" & "Keluar" */}
+          {/* LOGIKA AUTENTIKASI */}
           {isLoggedIn ? (
             <>
               <Link to="/dashboard" className="bg-white text-primary px-6 py-2.5 rounded-none font-bold hover:bg-gray-100 transition-colors">

@@ -1,6 +1,4 @@
-// import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-// Ikon ShieldCheck dihapus karena diganti dengan Logo.png
 import { Map, FileText, PlusCircle, BarChart2, Bell, User, LogOut } from 'lucide-react';
 import axiosInstance from '../api/axios';
 
@@ -16,7 +14,6 @@ const Sidebar = () => {
     { name: 'Profil', icon: User, path: '/profil' },
   ];
 
-  // Fungsi untuk menangani proses Logout
   const handleLogout = async () => {
     try {
       await axiosInstance.post('/logout');
@@ -32,7 +29,6 @@ const Sidebar = () => {
     <aside className="w-64 h-screen bg-linear-to-r from-primary to-[#10B981] text-white flex flex-col justify-between fixed top-0 left-0 shadow-xl">
       <div>
         
-        {/* BAGIAN HEADER YANG BISA DIKLIK (Navigasi ke Homepage) */}
         <div 
           onClick={() => navigate('/')}
           className="flex items-center gap-3 font-bold text-2xl p-6 border-b border-white/20 cursor-pointer hover:bg-white/10 transition-colors"
@@ -67,7 +63,6 @@ const Sidebar = () => {
         </nav>
       </div>
 
-      {/* BAGIAN BAWAH: Tombol Keluar / Logout */}
       <div className="p-4 mb-4 border-t border-white/20">
         <button 
           onClick={handleLogout}

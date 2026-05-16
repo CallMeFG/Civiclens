@@ -13,13 +13,12 @@ return new class extends Migration
     {
         Schema::create('notifications', function (Blueprint $table) {
             $table->id();
-            // user_id dibuat nullable (kosong) agar bisa mengirim notif 'Sistem' ke semua orang
             $table->foreignId('user_id')->nullable()->constrained()->onDelete('cascade');
-            $table->string('type'); // Contoh: 'Laporan Saya' atau 'Sistem'
-            $table->string('status'); // Contoh: 'ditolak', 'berhasil', 'diproses', 'info'
+            $table->string('type');
+            $table->string('status');
             $table->string('title');
             $table->text('desc');
-            $table->boolean('is_read')->default(false); // Status dibaca/belum
+            $table->boolean('is_read')->default(false);
             $table->timestamps();
         });
     }

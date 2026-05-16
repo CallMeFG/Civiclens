@@ -42,16 +42,14 @@ export default function BuatLaporan() {
 
   const [foto, setFoto] = useState(null);
 
-  // 1. Mengambil data kategori (KEMBALI KE PENDEKATAN AWAL ANDA)
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         const response = await axiosInstance.get('/categories');
-        const dataKategori = response.data.data; // Menggunakan struktur asli anda
+        const dataKategori = response.data.data;
         setCategories(dataKategori);
         
         if (dataKategori && dataKategori.length > 0) {
-          // Kita ambil ID dari item pertama array agar dropdown punya nilai awal
           setDataForm(prev => ({ ...prev, category_id: dataKategori[0].id }));
         }
       } catch (error) {
@@ -66,11 +64,10 @@ export default function BuatLaporan() {
     setDataForm({ ...dataForm, [e.target.name]: e.target.value });
   };
 
-  // 2. Perbaikan Foto (YANG SUDAH BERHASIL)
   const handleFileChange = (e) => {
     const selectedFiles = e.target.files;
     if (selectedFiles && selectedFiles.length > 0) {
-      const fileTunggal = selectedFiles[0]; // Mengambil file pertama
+      const fileTunggal = selectedFiles[0];
       setFoto(fileTunggal);
     } else {
       setFoto(null);
@@ -101,14 +98,11 @@ export default function BuatLaporan() {
         formDataToSend.append('foto', foto);
       }
 
-      // --- PERBAIKAN DI SINI: Ambil token dari localStorage ---
-      // Catatan: Ganti 'token' dengan nama kunci yang kamu gunakan saat menyimpan token di AuthController/Login
       const token = localStorage.getItem('token'); 
 
       const response = await axiosInstance.post('/reports', formDataToSend, {
         headers: {
           'Content-Type': 'multipart/form-data',
-          // Sertakan Bearer token agar dikenali oleh auth:sanctum Laravel
           'Authorization': `Bearer ${token}` 
         }
       });

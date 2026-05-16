@@ -14,7 +14,7 @@ return new class extends Migration
     Schema::create('categories', function (Blueprint $table) {
         $table->id();
         $table->string('nama_kategori');
-        $table->string('slug')->unique(); // Slug untuk URL yang rapi
+        $table->string('slug')->unique();
         $table->timestamps();
     });
 }

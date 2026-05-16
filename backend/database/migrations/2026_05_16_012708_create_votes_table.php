@@ -16,8 +16,6 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreignId('report_id')->constrained()->onDelete('cascade');
             $table->timestamps();
-
-            // Mencegah 1 user melakukan vote lebih dari 1 kali pada laporan yang sama
             $table->unique(['user_id', 'report_id']);
         });
     }

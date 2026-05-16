@@ -13,13 +13,11 @@ export default function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      // Menembak API Login Laravel
       const response = await axiosInstance.post("/login", {
         email: email,
         password: password,
       });
 
-      // Jika sukses, simpan Token ke browser dan arahkan ke Dashboard
       if (response.data.token) {
         localStorage.setItem("token", response.data.token);
         navigate("/dashboard");
@@ -31,11 +29,8 @@ export default function Login() {
   };
 
   return (
-    // h-screen dan overflow-hidden mengunci layar dari scroll
     <div className="h-screen flex bg-gray-50 overflow-hidden">
-      {/* Kolom Kiri: Area Info (40% di layar besar) */}
       <div className="hidden lg:flex lg:w-2/5 bg-primary pt-8 pb-0 flex-col justify-between relative">
-        {/* Konten Atas */}
         
         <div className="relative z-10 mb-2 px-10">
           <div
@@ -106,14 +101,10 @@ export default function Login() {
           </div>
         </div>
 
-        {/* Konten Bawah: Gambar Ilustrasi */}
-        {/* PERUBAHAN: menggunakan object-cover agar gambar melebar penuh menyentuh sisi kiri dan kanan */}
         <div className="relative z-10 mt-auto flex-1 min-h-0 w-full">
           <img
             src="/img/contoh1.png"
             alt="Ilustrasi CivicLens"
-            // PERUBAHAN: w-full h-full object-cover object-top membuat gambar mengisi penuh container,
-            // menahan bagian atas tetap terlihat, dan memotong bagian bawah jika ruangnya sempit.
             className="w-full h-full object-cover object-top drop-shadow-md"
           />
         </div>
@@ -122,13 +113,10 @@ export default function Login() {
         <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
       </div>
 
-      {/* Kolom Kanan: Form Login (60% di layar besar) */}
       <div className="w-full lg:w-3/5 flex items-center justify-center p-6 relative">
         <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] bg-size-[16px_16px] opacity-30"></div>
 
-        {/* PERUBAHAN: max-w-xl (tetap lebar), p-8 (padding dalam dikurangi agar lebih pendek), rounded-2xl */}
         <div className="w-full max-w-xl bg-white p-8 rounded-2xl shadow-xl border border-gray-100 relative z-10">
-          {/* Margin bawah header dikurangi jadi mb-6, ikon diperkecil sedikit */}
           <div className="flex flex-col items-center mb-6">
             <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center mb-4 shadow-inner">
               <Lock className="w-7 h-7 text-primary" />
@@ -141,11 +129,9 @@ export default function Login() {
             </p>
           </div>
 
-          {/* Jarak antar form dikurangi jadi space-y-4 */}
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-1.5">
               <label className="font-bold text-gray-700 text-sm">Email</label>
-              {/* Padding input diturunkan jadi p-3.5 */}
               <input
                 type="email"
                 placeholder="Masukkan email Anda"
@@ -189,7 +175,6 @@ export default function Login() {
               </div>
             </div>
 
-            {/* Padding tombol diturunkan jadi py-3.5 */}
             <button
               type="submit"
               className="w-full py-3.5 cursor-pointer bg-primary text-white rounded-xl font-bold text-base shadow-md hover:bg-blue-700 transition-colors mt-2"
@@ -198,7 +183,6 @@ export default function Login() {
             </button>
           </form>
 
-          {/* Margin elemen bawah dipadatkan jadi mt-6 */}
           <div className="mt-6 flex items-center gap-4">
             <div className="flex-1 h-px bg-gray-200"></div>
             <span className="text-sm text-gray-400 font-medium">

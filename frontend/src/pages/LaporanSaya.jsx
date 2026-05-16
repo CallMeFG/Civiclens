@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Search, Heart, ChevronRight, ChevronLeft, FileText, Clock, CheckCircle, XCircle } from 'lucide-react';
-import axiosInstance from '../api/axios'; // Menggunakan Axios dengan Token
+import axiosInstance from '../api/axios';
 
 export default function LaporanSaya() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -8,25 +8,32 @@ export default function LaporanSaya() {
   const [reports, setReports] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // STATE UNTUK PAGINASI NYATA
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5; // Anda bisa mengatur berapa laporan yang tampil per halaman di sini
+  const itemsPerPage = 5;
 
   // 1. MENGAMBIL DATA DARI BACKEND LARAVEL
   useEffect(() => {
-    const fetchReports = async () => {
-      try {
-        const response = await axiosInstance.get('/reports');
-        setReports(response.data.data || []);
-      } catch (error) {
-        console.error("Gagal mengambil data laporan saya:", error);
-      } finally {
-        setIsLoading(false);
-      }
+    const fetchLaporan = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axiosInstance.get('/reports/me', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (response.data.success) {
+                setReports(response.data.data);
+            }
+        } catch (error) {
+            console.error("Gagal mengambil data laporan:", error);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
-    fetchReports();
-  }, []);
+    fetchLaporan();
+}, []);
 
   // 2. LOGIKA KARTU STATISTIK ATAS
   const totalLaporan = reports.length;
@@ -48,7 +55,6 @@ export default function LaporanSaya() {
   // 4. KONSEP PAGINASI YANG SEBENARNYA
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  // Memotong array data untuk hanya mengambil data di halaman yang aktif saat ini
   const currentItems = filteredReports.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(filteredReports.length / itemsPerPage);
 
@@ -81,35 +87,29 @@ export default function LaporanSaya() {
         return 'bg-gray-100 text-gray-600';
     }
   };
-  // Fungsi baru untuk menangani pencarian
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
-    setCurrentPage(1); // Langsung ubah ke halaman 1 di sini
+    setCurrentPage(1);
   };
 
   // Fungsi baru untuk menangani filter status
   const handleStatusChange = (e) => {
     setStatusFilter(e.target.value);
-    setCurrentPage(1); // Langsung ubah ke halaman 1 di sini
+    setCurrentPage(1);
   };
-// FUNGSI UNTUK MENGIRIM VOTE KE BACKEND
   const handleVote = async (reportId) => {
     try {
-      const response = await axiosInstance.post(`/reports/${reportId}/vote`);
-      
-      // Update UI seketika (Optimistic Update) agar tidak perlu loading ulang halaman
-      setReports(reports.map(report => {
-        if (report.id === reportId) {
-          const isVoted = response.data.message === 'voted';
-          return {
-            ...report,
-            votes_count: isVoted ? (report.votes_count || 0) + 1 : (report.votes_count || 0) - 1
-          };
+        const token = localStorage.getItem('token');
+        if (!token) {
+            alert('Silakan login terlebih dahulu untuk memberikan dukungan.');
+            return;
         }
-        return report;
-      }));
+
+        await axiosInstance.post(`/reports/${reportId}/vote`, {}, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
     } catch (error) {
-      console.error("Gagal melakukan vote:", error);
+        console.error("Gagal memberikan vote", error);
     }
   };
   return (
@@ -195,7 +195,7 @@ export default function LaporanSaya() {
         </div>
       </div>
 
-      {/* DAFTAR LAPORAN (Dirender dari currentItems bukan filteredReports) */}
+      {/* DAFTAR LAPORAN */}
       <div className="space-y-4">
         {isLoading ? (
           <div className="text-center py-12 text-gray-500 font-medium bg-white rounded-2xl border border-gray-100">
@@ -236,13 +236,11 @@ export default function LaporanSaya() {
                   <span className="font-medium">{formatDate(report.created_at)}</span>
                   
                   <div className="flex items-center gap-5">
-                    {/* Event onClick dipasang pada Ikon Hati */}
                     <div 
                       onClick={() => handleVote(report.id)}
                       className="flex items-center gap-1.5 hover:text-red-500 cursor-pointer transition-colors group"
                     >
                       <Heart className="w-4 h-4 group-hover:fill-red-500" />
-                      {/* Menampilkan jumlah vote dari backend, jika null maka 0 */}
                       <span className="font-medium">{report.votes_count || 0}</span>
                     </div>
                     <ChevronRight className="w-5 h-5 cursor-pointer text-gray-400 hover:text-blue-600 transition-colors" />
@@ -259,7 +257,7 @@ export default function LaporanSaya() {
         )}
       </div>
 
-      {/* PAGINASI INTERAKTIF DAN NYATA */}
+      {/* PAGINASI INTERAKTIF */}
       {totalPages > 1 && (
         <div className="flex justify-center items-center gap-2 pt-6">
           <button 
@@ -274,7 +272,6 @@ export default function LaporanSaya() {
             <ChevronLeft className="w-5 h-5" />
           </button>
 
-          {/* Menghasilkan Tombol Angka Halaman Dinamis */}
           {[...Array(totalPages)].map((_, index) => {
             const pageNumber = index + 1;
             return (

@@ -8,15 +8,36 @@ use Illuminate\Http\Request;
 
 class ReportController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        // Menambahkan withCount('votes') agar Laravel menghitung total vote per laporan
-        $reports = Report::with('user')->withCount('votes')->latest()->get();
+        $userId = auth('sanctum')->id();
+
+        $reports = \App\Models\Report::withCount('votes')
+            ->with('votes')
+            ->latest()
+            ->get();
+
+        $reports->map(function ($report) use ($userId) {
+            $report->is_voted = $userId ? $report->votes->contains('user_id', $userId) : false;
+
+            unset($report->votes);
+            return $report;
+        });
 
         return response()->json([
             'success' => true,
             'data' => $reports
         ]);
+    }
+
+    public function myReports(Request $request)
+    {
+        $reports = Report::where('user_id', $request->user()->id)
+            ->withCount('votes')
+            ->latest()
+            ->get();
+
+        return response()->json(['success' => true, 'data' => $reports]);
     }
 
     public function store(Request $request)
@@ -39,14 +60,14 @@ class ReportController extends Controller
 
         // 3. Simpan ke Database
         $report = \App\Models\Report::create([
-            'user_id' => $request->user()->id, // Mengambil ID dari user yang sedang login
+            'user_id' => $request->user()->id,
             'category_id' => $request->category_id,
             'judul' => $request->judul,
             'deskripsi' => $request->deskripsi,
             'latitude' => $request->latitude,
             'longitude' => $request->longitude,
             'foto' => $fotoPath,
-            'status' => 'Pending', // Status awal (bisa diubah admin)
+            'status' => 'Pending',
         ]);
 
         return response()->json([
@@ -74,7 +95,7 @@ class ReportController extends Controller
             ->limit(3)
             ->get();
 
-        // 3. Line Chart: Laporan per bulan (Contoh: Jan - Jun)
+        // 3. Line Chart: Laporan per bulan
         $months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN'];
         $lineData = [];
         foreach ($months as $index => $month) {
@@ -88,7 +109,7 @@ class ReportController extends Controller
         $days = ['Mon' => 0, 'Tue' => 0, 'Wed' => 0, 'Thu' => 0, 'Fri' => 0, 'Sat' => 0, 'Sun' => 0];
         $allReports = \App\Models\Report::select('created_at')->get();
         foreach ($allReports as $report) {
-            $dayName = $report->created_at->format('D'); // Menghasilkan Mon, Tue, dll
+            $dayName = $report->created_at->format('D');
             if (isset($days[$dayName])) {
                 $days[$dayName]++;
             }
@@ -99,7 +120,7 @@ class ReportController extends Controller
             $barData[] = ['name' => $name, 'total' => $total];
         }
 
-        // 5. Kembalikan Response JSON yang rapi (DITAMBAH TOTAL VOTE ASLI)
+        // 5. Kembalikan Response JSON yang rapi
         return response()->json([
             'success' => true,
             'data' => [
@@ -107,8 +128,26 @@ class ReportController extends Controller
                 'topLocations' => $topLocations,
                 'lineData' => $lineData,
                 'barData' => $barData,
-                'totalVote' => \App\Models\Vote::count() // <--- INI ADALAH TAMBAHAN SATU BARISNYA
+                'totalVote' => \App\Models\Vote::count()
             ]
         ]);
+    }
+    public function vote(Request $request, $id)
+    {
+        $userId = $request->user()->id;
+        $existingVote = \App\Models\Vote::where('user_id', $userId)
+            ->where('report_id', $id)
+            ->first();
+
+        if ($existingVote) {
+            $existingVote->delete();
+            return response()->json(['success' => true, 'message' => 'Vote dihapus']);
+        } else {
+            \App\Models\Vote::create([
+                'user_id' => $userId,
+                'report_id' => $id
+            ]);
+            return response()->json(['success' => true, 'message' => 'Berhasil memberikan vote']);
+        }
     }
 }

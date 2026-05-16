@@ -9,7 +9,6 @@ class Report extends Model
 {
     use HasFactory;
 
-    // Mengizinkan kolom-kolom ini diisi secara massal
     protected $fillable = [
         'user_id',
         'category_id',

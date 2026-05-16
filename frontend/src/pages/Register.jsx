@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-// PERUBAHAN: Menambahkan ShieldCheck pada daftar import ikon
 import { Users, BarChart3, Lock, Eye, EyeOff, User, Mail, AlertCircle, ShieldCheck } from 'lucide-react';
 import axiosInstance from '../api/axios';
 
@@ -8,8 +7,6 @@ export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
-
-  // State untuk menyimpan input form (TIDAK ADA YANG DIUBAH)
   const [formData, setFormData] = useState({
     namaLengkap: '',
     email: '',
@@ -20,7 +17,6 @@ export default function Register() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
-  // Fungsi untuk mencatat ketikan user ke dalam state (TIDAK ADA YANG DIUBAH)
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -28,7 +24,6 @@ export default function Register() {
     });
   };
 
-  // Fungsi saat tombol Daftar ditekan (TIDAK ADA YANG DIUBAH)
   const handleRegister = async (e) => {
     e.preventDefault();
 
@@ -64,9 +59,6 @@ export default function Register() {
 
   return (
     <div className="h-screen flex bg-gray-50 overflow-hidden">
-      
-      {/* KOLOM KIRI (Branding & Ilustrasi) - 40% */}
-      {/* PERUBAHAN: Seluruh blok kiri ini disamakan persis dengan halaman Login */}
       <div className="hidden lg:flex lg:w-2/5 bg-primary pt-8 pb-0 flex-col justify-between relative">
         <div className="relative z-10 mb-2 px-10">
           <div
@@ -147,9 +139,6 @@ export default function Register() {
 
         <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
       </div>
-
-      {/* KOLOM KANAN (Form Register) - 60% */}
-      {/* (TIDAK ADA YANG DIUBAH SAMA SEKALI DI BLOK KANAN INI) */}
       <div className="w-full lg:w-3/5 flex items-center justify-center p-8 overflow-y-auto">
         <div className="w-full max-w-xl bg-white rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.04)] p-8">
           <div className="text-center mb-6">

@@ -209,7 +209,7 @@ export default function LaporanSaya() {
               {/* GAMBAR LANDSCAPE (DIPERBAIKI) */}
               <div className="w-full md:w-64 lg:w-72 h-40 sm:h-48 shrink-0 rounded-xl overflow-hidden bg-gray-100">
                 <img
-                  src={report.foto ? `http://localhost:8000/storage/${report.foto}` : 'https://via.placeholder.com/300x200?text=Tidak+Ada+Foto'}
+                  src={report.foto ? `https://api.civiclens.cloud/storage/${report.foto}` : 'https://via.placeholder.com/300x200?text=Tidak+Ada+Foto'}
                   alt={report.judul}
                   className="w-full h-full object-cover"
                   onError={(e) => { e.target.src = 'https://via.placeholder.com/300x200?text=Error' }}

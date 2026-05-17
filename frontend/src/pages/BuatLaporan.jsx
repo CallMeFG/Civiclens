@@ -4,6 +4,19 @@ import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaf
 import 'leaflet/dist/leaflet.css';
 import axiosInstance from '../api/axios';
 
+import L from 'leaflet';
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
+
+delete L.Icon.Default.prototype._getIconUrl;
+
+L.Icon.Default.mergeOptions({
+    iconRetinaUrl: markerIcon2x,
+    iconUrl: markerIcon,
+    shadowUrl: markerShadow,
+});
+
 // --- KOMPONEN LOCATION MARKER ---
 function LocationMarker({ position, setPosition, setDataForm }) {
   useMapEvents({
@@ -28,6 +41,8 @@ export default function BuatLaporan() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+
+  const isSubmittingRef = useRef(false);
 
   const [categories, setCategories] = useState([]);
   const fileInputRef = useRef(null);
@@ -77,11 +92,13 @@ export default function BuatLaporan() {
   // 3. Fungsi Submit Laporan
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isSubmittingRef.current) return;
     if (!dataForm.latitude || !dataForm.longitude) {
       setErrorMsg('Silakan pilih lokasi masalah pada peta terlebih dahulu.');
       return;
     }
 
+    isSubmittingRef.current = true;
     setIsLoading(true);
     setErrorMsg('');
     setSuccessMsg('');
@@ -108,14 +125,15 @@ export default function BuatLaporan() {
       });
 
       if (response.data.success) {
-        setSuccessMsg('Laporan berhasil dikirim!');
+        setSuccessMsg('Laporan berhasil dikirim! Mengalihkan...');
         setTimeout(() => navigate('/dashboard'), 2000);
       }
     } catch (error) {
       console.error("Gagal mengirim laporan:", error);
       setErrorMsg('Gagal mengirim laporan. Pastikan Anda sudah login, serta semua data dan foto terisi.');
-    } finally {
-      setIsLoading(false);
+      
+      isSubmittingRef.current = false;
+      setIsLoading(false); 
     }
   };
   

@@ -4,6 +4,19 @@ import 'leaflet/dist/leaflet.css';
 import { Search, Heart, ChevronRight, ArrowLeft, Clock, MapPin } from 'lucide-react';
 import axiosInstance from '../api/axios';
 
+import L from 'leaflet';
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
+
+delete L.Icon.Default.prototype._getIconUrl;
+
+L.Icon.Default.mergeOptions({
+    iconRetinaUrl: markerIcon2x,
+    iconUrl: markerIcon,
+    shadowUrl: markerShadow,
+});
+
 export default function PetaLaporan() {
   const [reports, setReports] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -40,12 +53,13 @@ export default function PetaLaporan() {
     setReports(prevReports => prevReports.map(report => {
       if (report.id === reportId) {
         const isCurrentlyVoted = report.is_voted;
+        const currentVotes = parseInt(report.votes_count || 0, 10);
         return {
           ...report,
           is_voted: !isCurrentlyVoted,
           votes_count: isCurrentlyVoted 
-            ? Math.max(0, (report.votes_count || 0) - 1)
-            : (report.votes_count || 0) + 1
+            ? Math.max(0, currentVotes - 1)
+            : currentVotes + 1
         };
       }
       return report;

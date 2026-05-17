@@ -52,13 +52,27 @@ class ReportController extends Controller
             'foto' => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
         ]);
 
-        // 2. Proses upload foto (Jika ada)
+        // 2. Cek jika duplikat
+        $duplicate = \App\Models\Report::where('user_id', $request->user()->id)
+            ->where('judul', $request->judul)
+            ->where('created_at', '>=', now()->subMinute())
+            ->first();
+
+        if ($duplicate) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Laporan berhasil dikirim!',
+                'data' => $duplicate
+            ], 201);
+        }
+
+        // 3. Proses upload foto (Jika ada)
         $fotoPath = null;
         if ($request->hasFile('foto')) {
             $fotoPath = $request->file('foto')->store('reports', 'public');
         }
 
-        // 3. Simpan ke Database
+        // 4. Simpan ke Database
         $report = \App\Models\Report::create([
             'user_id' => $request->user()->id,
             'category_id' => $request->category_id,
